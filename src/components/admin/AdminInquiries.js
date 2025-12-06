@@ -1,20 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { getFirestore, collection, getDocs, updateDoc, doc, deleteDoc } from "firebase/firestore";
-import { initializeApp } from "firebase/app";
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000/api';
 import Swal from "sweetalert2";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBfjYMkYdCPTKb0FyGIvKB2fVlbTdobi1s",
-  authDomain: "stjoseph-website.firebaseapp.com",
-  projectId: "stjoseph-website",
-  storageBucket: "stjoseph-website.firebasestorage.app",
-  messagingSenderId: "480997652051",
-  appId: "1:480997652051:web:6421e76f23ed708fa5b8a6",
-  measurementId: "G-PBK6DPK9Z7"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 const AdminInquiries = () => {
   const [inquiries, setInquiries] = useState([]);
@@ -32,8 +19,8 @@ const AdminInquiries = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const snapshot = await getDocs(collection(db, "contactSubmissions"));
-      const allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const res = await fetch(`${API_BASE}/inquiries`);
+      const allData = await res.json();
       
       // Separate active and archived inquiries
       const active = allData.filter(inquiry => !inquiry.archived);
@@ -86,7 +73,12 @@ const AdminInquiries = () => {
 
   const markAsRead = async (id) => {
     try {
-      await updateDoc(doc(db, "contactSubmissions", id), { read: true });
+      const res = await fetch(`${API_BASE}/inquiries/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ read: true })
+      });
+      if (!res.ok) throw new Error('Request failed');
       fetchInquiries();
       Swal.fire("Success", "Inquiry marked as read", "success");
     } catch (error) {
@@ -107,7 +99,12 @@ const AdminInquiries = () => {
 
     if (result.isConfirmed) {
       try {
-        await updateDoc(doc(db, "contactSubmissions", id), { archived: true });
+        const res = await fetch(`${API_BASE}/inquiries/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ archived: true })
+        });
+        if (!res.ok) throw new Error('Request failed');
         fetchInquiries();
         Swal.fire("Archived", "Inquiry has been archived", "success");
       } catch (error) {
@@ -118,7 +115,12 @@ const AdminInquiries = () => {
 
   const restoreInquiry = async (id) => {
     try {
-      await updateDoc(doc(db, "contactSubmissions", id), { archived: false });
+      const res = await fetch(`${API_BASE}/inquiries/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived: false })
+      });
+      if (!res.ok) throw new Error('Request failed');
       fetchInquiries();
       Swal.fire("Restored", "Inquiry has been restored", "success");
     } catch (error) {
@@ -139,7 +141,8 @@ const AdminInquiries = () => {
 
     if (result.isConfirmed) {
       try {
-        await deleteDoc(doc(db, "contactSubmissions", id));
+        const res = await fetch(`${API_BASE}/inquiries/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Request failed');
         fetchInquiries();
         Swal.fire("Deleted", "Inquiry has been permanently removed", "success");
       } catch (error) {
@@ -148,9 +151,9 @@ const AdminInquiries = () => {
     }
   };
 
-  const formatDate = (timestamp) => {
-    if (!timestamp) return "Unknown date";
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  const formatDate = (value) => {
+    if (!value) return "Unknown date";
+    const date = new Date(value);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',

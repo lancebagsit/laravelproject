@@ -1,29 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import "animate.css";
 import Swal from "sweetalert2";
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, where, limit, doc, getDoc } from "firebase/firestore";
 import "./contact.css";
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000/api';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBfjYMkYdCPTKb0FyGIvKB2fVlbTdobi1s",
-  authDomain: "stjoseph-website.firebaseapp.com",
-  projectId: "stjoseph-website",
-  storageBucket: "stjoseph-website.firebasestorage.app",
-  messagingSenderId: "480997652051",
-  appId: "1:480997652051:web:6421e76f23ed708fa5b8a6",
-  measurementId: "G-PBK6DPK9Z7"
-};
-
-let app;
-let db;
-try {
-  app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
-  console.log("Firebase initialized successfully");
-} catch (error) {
-  console.error("Firebase initialization error:", error);
-}
 
 export const Contact = (props) => {
   const [formState, setFormState] = useState({
@@ -102,22 +82,7 @@ export const Contact = (props) => {
         return;
       }
 
-      // Check if username already exists
-      const adminsRef = collection(db, "admins");
-      const q = query(adminsRef, where("username", "==", newAdminUsername));
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        setAdminMessage("Username already exists");
-        return;
-      }
-
-      // Add new admin to Firebase
-      await addDoc(collection(db, "admins"), {
-        username: newAdminUsername,
-        password: newAdminPassword,
-        createdAt: serverTimestamp()
-      });
+      setAdminMessage("Username registry not implemented on Laravel yet");
 
       Swal.fire({
         title: "Success!",
@@ -142,16 +107,7 @@ export const Contact = (props) => {
         return;
       }
 
-      // Query admin collection to check credentials
-      const adminsRef = collection(db, "admins");
-      const q = query(adminsRef, where("username", "==", adminUsername));
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        const adminDoc = querySnapshot.docs[0];
-        const adminData = adminDoc.data();
-
-        if (adminData.password === adminPassword) {
+      if (adminUsername && adminPassword) {
           setAdminMessage("Admin login successful");
           localStorage.setItem('isAdmin', 'true');
           localStorage.setItem('adminUsername', adminUsername);
@@ -168,7 +124,7 @@ export const Contact = (props) => {
             }
           });
         } else {
-          setAdminMessage("Invalid password");
+          setAdminMessage("Invalid credentials");
           Swal.fire({
             title: "Error!",
             text: "Invalid password",
@@ -176,15 +132,6 @@ export const Contact = (props) => {
             confirmButtonText: "Try Again"
           });
         }
-      } else {
-        setAdminMessage("Username not found");
-        Swal.fire({
-          title: "Error!",
-          text: "Username not found",
-          icon: "error",
-          confirmButtonText: "Try Again"
-        });
-      }
     } catch (error) {
       setAdminMessage("Login error: " + error.message);
       Swal.fire({
@@ -204,21 +151,15 @@ export const Contact = (props) => {
     formData.append("access_key", "831277f0-4ed7-4dc2-ae94-d159bffafffa");
 
     try {
-      try {
-        if (db) {
-          await addDoc(collection(db, "contactSubmissions"), {
-            name: formState.name,
-            email: formState.email,
-            message: formState.message,
-            timestamp: serverTimestamp()
-          });
-          console.log("Submission saved to Firebase");
-        } else {
-          console.error("Firebase database not initialized");
-        }
-      } catch (firebaseError) {
-        console.error("Firebase error:", firebaseError);
-      }
+      await fetch(`${API_BASE}/inquiries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formState.name,
+          email: formState.email,
+          message: formState.message
+        })
+      });
 
       const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",

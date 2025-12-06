@@ -1,30 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import "animate.css";
 import Swal from "sweetalert2";
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000/api';
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBfjYMkYdCPTKb0FyGIvKB2fVlbTdobi1s",
-  authDomain: "stjoseph-website.firebaseapp.com",
-  projectId: "stjoseph-website",
-  storageBucket: "stjoseph-website.firebasestorage.app",
-  messagingSenderId: "480997652051",
-  appId: "1:480997652051:web:6421e76f23ed708fa5b8a6",
-  measurementId: "G-PBK6DPK9Z7"
-};
-
-// Initialize Firebase
-let app;
-let db;
-try {
-  app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
-  console.log("Firebase initialized successfully");
-} catch (error) {
-  console.error("Firebase initialization error:", error);
-}
 
 // Convert image to base64
 const convertToBase64 = (file) => {
@@ -278,27 +256,16 @@ export const Donate = (props) => {
 
       updateProgress(60, 'Preparing donation data...');
       
-      console.log('Checking Firebase connection...');
-      
-      // Test if db is properly initialized
-      if (!db) {
-        throw new Error('Firebase database not initialized');
-      }
-      
       updateProgress(80, 'Saving donation details...');
-      console.log('Saving to Firestore...');
-      
-      // Save donation data to Firestore with image
       const donationData = {
         name: formState.name,
-        contactNumber: formState.contactNumber,
-        modeOfPayment: formState.modeOfPayment,
-        referenceNumber: formState.referenceNumber || "",
-        donationAmount: formState.donationAmount || "",
-        proofOfPaymentBase64: imageBase64,
+        contact_number: formState.contactNumber,
+        mode_of_payment: formState.modeOfPayment,
+        reference_number: formState.referenceNumber || "",
+        donation_amount: formState.donationAmount || "",
+        proof_of_payment_base64: imageBase64,
         proofOfPaymentFileName: originalFileName,
         proofOfPaymentSize: compressedFileSize,
-        timestamp: serverTimestamp(),
         status: 'pending'
       };
       
@@ -307,8 +274,13 @@ export const Donate = (props) => {
         proofOfPaymentBase64: '[BASE64_DATA]'
       });
       
-      const docRef = await addDoc(collection(db, "donations"), donationData);
-      console.log('Document saved successfully with ID:', docRef.id);
+      const res = await fetch(`${API_BASE}/donations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(donationData)
+      });
+      if (!res.ok) throw new Error('Request failed');
+      console.log('Donation saved successfully');
       
       updateProgress(100, 'Complete!');
       
@@ -322,7 +294,6 @@ export const Donate = (props) => {
           confirmButtonColor: "#3085d6"
         }).then((result) => {
           if (result.isConfirmed) {
-            // Redirect to homepage
             window.location.href = '/';
           }
         });

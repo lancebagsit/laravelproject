@@ -1,28 +1,7 @@
 import React, { useState, useEffect } from "react";
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-} from "firebase/firestore";
-import { initializeApp } from "firebase/app";
 import Swal from "sweetalert2";
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000/api';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBfjYMkYdCPTKb0FyGIvKB2fVlbTdobi1s",
-  authDomain: "stjoseph-website.firebaseapp.com",
-  projectId: "stjoseph-website",
-  storageBucket: "stjoseph-website.firebasestorage.app",
-  messagingSenderId: "480997652051",
-  appId: "1:480997652051:web:6421e76f23ed708fa5b8a6",
-  measurementId: "G-PBK6DPK9Z7",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 const AdminGallery = () => {
   const [galleryItems, setGalleryItems] = useState([]);
@@ -38,8 +17,9 @@ const AdminGallery = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const snapshot = await getDocs(collection(db, "gallery"));
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const res = await fetch(`${API_BASE}/gallery`);
+      const data = await res.json();
+      // Expect {id,title,url}
       setGalleryItems(data);
     } catch (err) {
       console.error("Error fetching gallery:", err);
@@ -61,17 +41,15 @@ const AdminGallery = () => {
 
     try {
       setIsLoading(true);
-      const docRef = await addDoc(collection(db, "gallery"), {
-        title: newItem.title,
-        url: newItem.url,
-        timestamp: new Date().toISOString(),
+      const res = await fetch(`${API_BASE}/gallery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newItem.title, url: newItem.url })
       });
-
-      if (docRef.id) {
-        setNewItem({ title: "", url: "" });
-        await fetchGalleryItems();
-        Swal.fire("Success", "Gallery item added successfully", "success");
-      }
+      if (!res.ok) throw new Error('Request failed');
+      setNewItem({ title: "", url: "" });
+      await fetchGalleryItems();
+      Swal.fire("Success", "Gallery item added successfully", "success");
     } catch (err) {
       Swal.fire("Error", `Failed to add gallery item: ${err.message}`, "error");
     } finally {
@@ -86,7 +64,12 @@ const AdminGallery = () => {
     }
 
     try {
-      await updateDoc(doc(db, "gallery", id), updated);
+      const res = await fetch(`${API_BASE}/gallery/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated)
+      });
+      if (!res.ok) throw new Error('Request failed');
       fetchGalleryItems();
       Swal.fire("Success", "Gallery item updated", "success");
     } catch (err) {
@@ -107,7 +90,8 @@ const AdminGallery = () => {
 
     if (result.isConfirmed) {
       try {
-        await deleteDoc(doc(db, "gallery", id));
+        const res = await fetch(`${API_BASE}/gallery/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Request failed');
         fetchGalleryItems();
         Swal.fire("Deleted", "Gallery item removed", "success");
       } catch (err) {

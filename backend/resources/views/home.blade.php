@@ -1,0 +1,257 @@
+@extends('layouts.app')
+
+@section('content')
+<header id="header">
+  <div class="intro">
+    <div class="overlay">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-8 col-md-offset-2 intro-text">
+            <h1>Diocesan Shrine and Parish of Saint Joseph<span></span></h1>
+            <p>Welcome — join us for worship, community, and service.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </header>
+
+<div id="announcements" class="text-center" data-animate="animate__fadeInUp animate__delay-05s">
+  <div class="container">
+    <div class="section-title" data-animate="animate__fadeInUp animate__delay-05s">
+      <h2>Announcements</h2>
+      <p>Stay updated with our latest news and events</p>
+    </div>
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+        @if($announcements->count())
+          <div class="announcement-box" data-animate="animate__fadeInUp animate__delay-1s">
+            <div class="announcement-nav">
+              <button class="announcement-btn" data-ann-prev>&laquo; Prev</button>
+              <span class="announcement-counter" data-ann-counter>1 of {{ $announcements->count() }}</span>
+              <button class="announcement-btn" data-ann-next>Next &raquo;</button>
+            </div>
+            <div class="announcement-content" data-animate="animate__fadeIn animate__delay-2s">
+              @foreach($announcements as $a)
+                <div class="announcement-item" data-ann-index style="display:none;">
+                  <h3>{{ $a->title }}</h3>
+                  <p class="author">Posted by: {{ $a->author ?? 'System Admin' }}</p>
+                  <p>{{ $a->content }}</p>
+                </div>
+              @endforeach
+            </div>
+          </div>
+        @else
+          <p>No announcements yet.</p>
+        @endif
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="about" data-animate="animate__fadeInUp animate__delay-05s">
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-12 col-md-6" data-animate="animate__fadeInLeft animate__delay-05s">
+        <img src="/img/altar.jpg" class="img-responsive about-image" alt="Altar">
+      </div>
+      <div class="col-xs-12 col-md-6" data-animate="animate__fadeInRight animate__delay-05s">
+        <div class="about-text">
+          <h2 class="about-title">About Us</h2>
+          <p>Welcome to the Diocesan Shrine and Parish of Saint Joseph — a spiritual sanctuary nestled in the heart of Quezon City, under the care of the Diocese of Cubao.</p>
+          <p>Established on November 23, 1951, our parish began as a humble mission to serve the growing faith community in the newly developed government housing projects of Project 3. Over the decades, it has blossomed into a vibrant center of worship, formation, and community outreach.</p>
+          <p>In 1999, the church was honored with the title of Archdiocesan Shrine by Cardinal Jaime Sin, and later became part of the Diocese of Cubao when it was formally established in 2003.</p>
+          <p>Our shrine is dedicated to Saint Joseph, Husband of Mary, the silent yet steadfast protector of the Holy Family. His feast day is joyfully celebrated every March 19, drawing parishioners and pilgrims alike. A revered image of Saint Joseph — lovingly crafted by renowned sculptor Maximo Vicente — stands at the heart of our sanctuary, symbolizing our devotion and trust in his intercession.</p>
+          <p>Come and be part of our growing parish family.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="priests" class="parish-info-container" data-animate="animate__fadeInUp animate__delay-1s">
+  <div class="container">
+    <h2 class="parish-info-title">Parish Information</h2>
+    <div class="row parish-info-row">
+      <div class="col-md-6 parish-info-col">
+        <div class="section-title text-center"><h3>Parish Priests</h3></div>
+        @php($priests = \App\Models\Priest::latest()->get())
+        @forelse($priests as $p)
+          <div class="priest-card" data-animate="animate__fadeInUp animate__delay-1s">
+            <div class="priest-image">
+              @if($p->image)
+                <img src="{{ $p->image }}" alt="{{ $p->name }}">
+              @else
+                <img src="https://via.placeholder.com/300x200?text=No+Image" alt="{{ $p->name }}">
+              @endif
+            </div>
+            <div class="priest-content">
+              <h4>{{ $p->name }}</h4>
+              <p>{{ $p->description }}</p>
+            </div>
+          </div>
+        @empty
+          <p>No entries yet.</p>
+        @endforelse
+      </div>
+      <div class="col-md-6 parish-info-col">
+        <div class="section-title text-center"><h3>Weekly Mass Schedule</h3></div>
+        @php($schedules = \App\Models\Schedule::all())
+        <div class="table-wrapper">
+        <table class="table schedule-table">
+          <thead><tr><th>Time</th><th>Language</th></tr></thead>
+          <tbody>
+          @forelse($schedules as $s)
+            <tr><td>{{ $s->time }}</td><td>{{ $s->language }}</td></tr>
+          @empty
+            <tr><td colspan="2">No schedule posted.</td></tr>
+          @endforelse
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@php($services = [
+  [
+    'name' => 'DSWD Workshop',
+    'text' => 'Empowering individuals and families through workshops and support services.',
+    'definition' => 'Community-based programs such as livelihood training and social welfare education.',
+    'images' => ['/img/DSWD.jpg','/img/DSWD (1).jpg','/img/DSWD (2).jpg']
+  ],
+  [
+    'name' => 'Pan De San Jose',
+    'text' => 'Parish-led livelihood initiative supporting local families.',
+    'definition' => 'Community effort to build skills and provide sustainable income.',
+    'images' => ['/img/pan-de-san-jose.jpg','/img/pan-de-san-jose(1).JPG','/img/pan-de-san-jose(2).jpg']
+  ],
+  [
+    'name' => 'Bloodletting Activity',
+    'text' => 'Annual health outreach in partnership with local institutions.',
+    'definition' => 'Encouraging life-saving donations and wellness awareness.',
+    'images' => ['/img/BLOODLETTING.jpg','/img/BLOODLETTING(1).jpg','/img/BLOODLETTING(2).jpg']
+  ],
+  [
+    'name' => 'Paskong Puno ng Panalangin',
+    'text' => 'Seasonal program celebrating faith and community.',
+    'definition' => 'Liturgical and outreach activities during Advent and Christmas.',
+    'images' => ['/img/CHRISTMAS.JPG','/img/CHRISTMAS(1).JPG','/img/CHRISTMAS(2).JPG']
+  ],
+  [
+    'name' => 'Ambag ng Pasko',
+    'text' => 'Holiday giving drive for families in need.',
+    'definition' => 'Donations and service organized by parish ministries.',
+    'images' => ['/img/AMBAG.jpg','/img/AMBAG(1).jpg','/img/AMBAG(2).jpg']
+  ],
+])
+
+<div id="services" class="services-wrapper" data-animate="animate__fadeInUp animate__delay-1s">
+  <div class="container">
+    <div class="services-header text-center">
+      <h2>Community Services</h2>
+      <p>Outreach and parish programs serving our community</p>
+    </div>
+    <div class="services-carousel" id="servicesCarousel" data-services='@json($services)'>
+      @foreach($services as $i => $svc)
+        <div class="svc-slide" data-svc-index="{{ $i }}" style="display:none;">
+          <div class="svc-content">
+            <div class="svc-image">
+              <img src="{{ $svc['images'][0] }}" alt="{{ $svc['name'] }}">
+            </div>
+            <div class="svc-text">
+              <h3 class="svc-title">{{ $svc['name'] }}</h3>
+              <p class="svc-desc">{{ $svc['text'] }}</p>
+              <div class="svc-definition">
+                <strong>Definition</strong>
+                <p>{{ $svc['definition'] }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      @endforeach
+    </div>
+    <div class="services-controls text-center">
+      <button class="btn btn-primary" id="svc-prev"><i data-lucide="chevron-left"></i></button>
+      <span id="svc-counter">1 / {{ count($services) }}</span>
+      <button class="btn btn-primary" id="svc-next"><i data-lucide="chevron-right"></i></button>
+    </div>
+    <div class="services-dots text-center">
+      @foreach($services as $i => $svc)
+        <button class="svc-dot" data-svc-dot="{{ $i }}"></button>
+      @endforeach
+    </div>
+  </div>
+</div>
+
+<div id="portfolio" class="text-center" data-animate="animate__fadeInUp animate__delay-1s">
+  <div class="container">
+    <div class="section-title">
+      <h2>Gallery</h2>
+      <p>Moments from our parish life</p>
+    </div>
+    <div class="row">
+      @php($items = \App\Models\GalleryItem::latest()->get())
+      @forelse($items as $item)
+        <div class="col-sm-6 col-md-4 col-lg-4 gallery-item" data-animate="animate__fadeInUp" style="display:none; --animate-delay: {{ ($loop->index % 3) * 0.15 }}s;">
+          <div class="thumbnail">
+            <img src="{{ $item->url }}" alt="{{ $item->title }}">
+            <div class="caption"><h4>{{ $item->title }}</h4></div>
+          </div>
+        </div>
+      @empty
+        <div class="col-md-12">No images yet.</div>
+      @endforelse
+    </div>
+    <div class="row" style="margin-top:20px; margin-bottom:20px;">
+      <div class="col-md-12 text-center">
+        <button class="btn btn-primary" id="gallery-prev">&laquo;</button>
+        <span id="gallery-page" style="margin:0 10px;">1 / 1</span>
+        <button class="btn btn-primary" id="gallery-next">&raquo;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="contact" data-animate="animate__fadeInUp animate__delay-1s">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-8">
+        <div class="section-title" data-animate="animate__fadeInUp animate__delay-05s"><h2>Contact us Now!</h2></div>
+        <form method="POST" action="/contact">
+          @csrf
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <input type="text" id="name" name="name" class="form-control" placeholder="Name" required />
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <input type="email" id="email" name="email" class="form-control" placeholder="Email" required />
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <textarea name="message" id="message" class="form-control" rows="4" placeholder="Message" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-custom btn-lg">Send Message</button>
+        </form>
+      </div>
+      <div class="col-md-3 col-md-offset-1 contact-info">
+        <div class="contact-item">
+          <h3>Contact Info</h3>
+          <p><span><i class="fa fa-map-marker"></i> Address</span> Quezon City</p>
+        </div>
+        <div class="contact-item">
+          <p><span><i class="fa fa-phone"></i> Phone</span> (000) 000-0000</p>
+        </div>
+        <div class="contact-item">
+          <p><span><i class="fa fa-envelope-o"></i> Email</span> parish@example.com</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+@endsection

@@ -1,20 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { getFirestore, collection, getDocs, updateDoc, doc } from "firebase/firestore";
-import { initializeApp } from "firebase/app";
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000/api';
 import Swal from "sweetalert2";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBfjYMkYdCPTKb0FyGIvKB2fVlbTdobi1s",
-  authDomain: "stjoseph-website.firebaseapp.com",
-  projectId: "stjoseph-website",
-  storageBucket: "stjoseph-website.firebasestorage.app",
-  messagingSenderId: "480997652051",
-  appId: "1:480997652051:web:6421e76f23ed708fa5b8a6",
-  measurementId: "G-PBK6DPK9Z7"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 const AdminDonations = () => {
   const [donations, setDonations] = useState([]);
@@ -31,8 +18,8 @@ const AdminDonations = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const snapshot = await getDocs(collection(db, "donations"));
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const res = await fetch(`${API_BASE}/donations`);
+      const data = await res.json();
       setDonations(sortDonations(data, sortOption));
     } catch (error) {
       console.error("Error fetching donations:", error);
@@ -47,13 +34,15 @@ const AdminDonations = () => {
     switch(option) {
       case "newest":
         return sortedData.sort((a, b) => {
-          if (!a.timestamp || !b.timestamp) return 0;
-          return b.timestamp.seconds - a.timestamp.seconds;
+          const da = new Date(a.created_at || a.timestamp || 0).getTime();
+          const dbb = new Date(b.created_at || b.timestamp || 0).getTime();
+          return dbb - da;
         });
       case "oldest":
         return sortedData.sort((a, b) => {
-          if (!a.timestamp || !b.timestamp) return 0;
-          return a.timestamp.seconds - b.timestamp.seconds;
+          const da = new Date(a.created_at || a.timestamp || 0).getTime();
+          const dbb = new Date(b.created_at || b.timestamp || 0).getTime();
+          return da - dbb;
         });
       case "pending":
         return sortedData.sort((a, b) => {
@@ -62,8 +51,9 @@ const AdminDonations = () => {
           if (statusA === "pending" && statusB !== "pending") return -1;
           if (statusA !== "pending" && statusB === "pending") return 1;
           // If both have the same status (both pending or both not pending), sort by date
-          if (!a.timestamp || !b.timestamp) return 0;
-          return b.timestamp.seconds - a.timestamp.seconds;
+          const da = new Date(a.created_at || a.timestamp || 0).getTime();
+          const dbb = new Date(b.created_at || b.timestamp || 0).getTime();
+          return dbb - da;
         });
       case "verified":
         return sortedData.sort((a, b) => {
@@ -72,8 +62,9 @@ const AdminDonations = () => {
           if (statusA === "verified" && statusB !== "verified") return -1;
           if (statusA !== "verified" && statusB === "verified") return 1;
           // If both have the same status, sort by date
-          if (!a.timestamp || !b.timestamp) return 0;
-          return b.timestamp.seconds - a.timestamp.seconds;
+          const da = new Date(a.created_at || a.timestamp || 0).getTime();
+          const dbb = new Date(b.created_at || b.timestamp || 0).getTime();
+          return dbb - da;
         });
       case "completed":
         return sortedData.sort((a, b) => {
@@ -82,8 +73,9 @@ const AdminDonations = () => {
           if (statusA === "completed" && statusB !== "completed") return -1;
           if (statusA !== "completed" && statusB === "completed") return 1;
           // If both have the same status, sort by date
-          if (!a.timestamp || !b.timestamp) return 0;
-          return b.timestamp.seconds - a.timestamp.seconds;
+          const da = new Date(a.created_at || a.timestamp || 0).getTime();
+          const dbb = new Date(b.created_at || b.timestamp || 0).getTime();
+          return dbb - da;
         });
       case "amount-high":
         return sortedData.sort((a, b) => {
@@ -110,7 +102,12 @@ const AdminDonations = () => {
 
   const updateDonationStatus = async (id, newStatus) => {
     try {
-      await updateDoc(doc(db, "donations", id), { status: newStatus });
+      const res = await fetch(`${API_BASE}/donations/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (!res.ok) throw new Error('Request failed');
       fetchDonations();
       Swal.fire("Success", `Donation status updated to ${newStatus}`, "success");
     } catch (error) {
@@ -118,9 +115,9 @@ const AdminDonations = () => {
     }
   };
 
-  const formatDate = (timestamp) => {
-    if (!timestamp) return "Unknown date";
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+  const formatDate = (value) => {
+    if (!value) return "Unknown date";
+    const date = new Date(value);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',

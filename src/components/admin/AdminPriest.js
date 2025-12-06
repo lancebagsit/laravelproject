@@ -1,22 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
-import { initializeApp } from "firebase/app";
 import Swal from "sweetalert2";
 import './admin.css';
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000/api';
 
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBfjYMkYdCPTKb0FyGIvKB2fVlbTdobi1s",
-  authDomain: "stjoseph-website.firebaseapp.com",
-  projectId: "stjoseph-website",
-  storageBucket: "stjoseph-website.firebasestorage.app",
-  messagingSenderId: "480997652051",
-  appId: "1:480997652051:web:6421e76f23ed708fa5b8a6",
-  measurementId: "G-PBK6DPK9Z7"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 const AdminPriests = () => {
   const [priests, setPriests] = useState([]);
@@ -31,8 +18,8 @@ const AdminPriests = () => {
   const fetchPriests = async () => {
     try {
       setIsLoading(true);
-      const snapshot = await getDocs(collection(db, "priests"));
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const res = await fetch(`${API_BASE}/priests`);
+      const data = await res.json();
       setPriests(data);
     } catch (err) {
       console.error("Error fetching priests:", err);
@@ -54,18 +41,15 @@ const AdminPriests = () => {
 
     try {
       setIsLoading(true);
-      const docRef = await addDoc(collection(db, "priests"), {
-        name: newPriest.name,
-        image: newPriest.image,
-        description: newPriest.description,
-        createdAt: new Date().toISOString()
+      const res = await fetch(`${API_BASE}/priests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPriest)
       });
-
-      if (docRef.id) {
-        setNewPriest({ name: "", image: "", description: "" });
-        await fetchPriests();
-        Swal.fire("Success", "Priest added successfully", "success");
-      }
+      if (!res.ok) throw new Error('Request failed');
+      setNewPriest({ name: "", image: "", description: "" });
+      await fetchPriests();
+      Swal.fire("Success", "Priest added successfully", "success");
     } catch (err) {
       Swal.fire("Error", `Failed to add priest: ${err.message}`, "error");
     } finally {
@@ -80,7 +64,12 @@ const AdminPriests = () => {
     }
 
     try {
-      await updateDoc(doc(db, "priests", id), updated);
+      const res = await fetch(`${API_BASE}/priests/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated)
+      });
+      if (!res.ok) throw new Error('Request failed');
       fetchPriests();
       Swal.fire("Updated", "Priest details updated", "success");
     } catch (err) {
@@ -101,7 +90,8 @@ const AdminPriests = () => {
 
     if (result.isConfirmed) {
       try {
-        await deleteDoc(doc(db, "priests", id));
+        const res = await fetch(`${API_BASE}/priests/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Request failed');
         fetchPriests();
         Swal.fire("Deleted", "Priest has been removed", "success");
       } catch (err) {

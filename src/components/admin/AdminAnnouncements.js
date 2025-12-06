@@ -1,20 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
-import { initializeApp } from "firebase/app";
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://127.0.0.1:8000/api';
 import Swal from "sweetalert2";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBfjYMkYdCPTKb0FyGIvKB2fVlbTdobi1s",
-  authDomain: "stjoseph-website.firebaseapp.com",
-  projectId: "stjoseph-website",
-  storageBucket: "stjoseph-website.firebasestorage.app",
-  messagingSenderId: "480997652051",
-  appId: "1:480997652051:web:6421e76f23ed708fa5b8a6",
-  measurementId: "G-PBK6DPK9Z7"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 const AdminAnnouncements = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -30,11 +17,10 @@ const AdminAnnouncements = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const snapshot = await getDocs(collection(db, "announcements"));
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setAnnouncements(data);
+      const res = await fetch(`${API_BASE}/announcements`);
+      const data = await res.json();
+      setAnnouncements(data.map(a => ({ id: a.id, title: a.title, content: a.content })));
     } catch (error) {
-      console.error("Error fetching announcements:", error);
       setError("Failed to load announcements");
     } finally {
       setIsLoading(false);
@@ -53,21 +39,19 @@ const AdminAnnouncements = () => {
 
     try {
       setIsLoading(true);
-      const docRef = await addDoc(collection(db, "announcements"), {
-        title: newAnnouncement.title,
-        content: newAnnouncement.content,
-        timestamp: new Date().toISOString() 
+      const res = await fetch(`${API_BASE}/announcements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newAnnouncement.title,
+          content: newAnnouncement.content
+        })
       });
-      
-      if (docRef.id) {
-        setNewAnnouncement({ title: "", content: "" });
-        await fetchAnnouncements();
-        Swal.fire("Success", "Announcement added successfully", "success");
-      } else {
-        throw new Error("Failed to get document reference");
-      }
+      if (!res.ok) throw new Error('Request failed');
+      setNewAnnouncement({ title: "", content: "" });
+      await fetchAnnouncements();
+      Swal.fire("Success", "Announcement added successfully", "success");
     } catch (error) {
-      console.error("Error adding announcement:", error);
       Swal.fire("Error", `Failed to add announcement: ${error.message}`, "error");
     } finally {
       setIsLoading(false);
@@ -81,7 +65,12 @@ const AdminAnnouncements = () => {
     }
 
     try {
-      await updateDoc(doc(db, "announcements", id), updated);
+      const res = await fetch(`${API_BASE}/announcements/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated)
+      });
+      if (!res.ok) throw new Error('Request failed');
       fetchAnnouncements();
       Swal.fire("Success", "Announcement updated successfully", "success");
     } catch (error) {
@@ -102,7 +91,8 @@ const AdminAnnouncements = () => {
 
     if (result.isConfirmed) {
       try {
-        await deleteDoc(doc(db, "announcements", id));
+        const res = await fetch(`${API_BASE}/announcements/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Request failed');
         fetchAnnouncements();
         Swal.fire("Deleted", "Announcement has been removed", "success");
       } catch (error) {
