@@ -16,10 +16,10 @@
     <div class="container">
         <div class="navbar-header">
             <a class="navbar-brand" href="/">ST. JOSEPH SHRINE{{ $isAdmin ? ' Admin' : '' }}</a>
-            <button type="button" id="menuToggle" class="navbar-toggle" aria-controls="bs-example-navbar-collapse-1" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
+            <button type="button" id="menuToggle" class="nav-burger" aria-label="Toggle navigation">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
             </button>
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -63,6 +63,7 @@
             @endif
         </div>
     </div>
+    <div id="menuMask" class="menu-mask"></div>
     </nav>
 
     <div class="content-wrapper" style="margin-top:80px;">
@@ -193,13 +194,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var toggleBtn = document.getElementById('menuToggle');
   var collapse = document.getElementById('bs-example-navbar-collapse-1');
+  var mask = document.getElementById('menuMask');
   if (toggleBtn && collapse) {
-    function closeMenu(){ collapse.classList.remove('open'); document.body.classList.remove('menu-open'); }
+    function closeMenu(){ collapse.classList.remove('open'); collapse.classList.remove('in'); document.body.classList.remove('menu-open'); if (mask) mask.style.display = 'none'; toggleBtn.classList.remove('active'); toggleBtn.setAttribute('aria-expanded','false'); }
     toggleBtn.addEventListener('click', function(){
       var isOpen = collapse.classList.toggle('open');
+      collapse.classList.toggle('in', isOpen);
       document.body.classList.toggle('menu-open', isOpen);
+      if (mask) mask.style.display = isOpen ? 'block' : 'none';
+      toggleBtn.classList.toggle('active', isOpen);
+      toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
     Array.prototype.slice.call(collapse.querySelectorAll('a')).forEach(function(a){ a.addEventListener('click', closeMenu); });
+    if (mask) mask.addEventListener('click', closeMenu);
   }
 
   var items = Array.prototype.slice.call(document.querySelectorAll('.announcement-item'));
