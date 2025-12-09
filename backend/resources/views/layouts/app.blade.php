@@ -28,8 +28,12 @@
                 <li><a href="/#contact" class="page-scroll">Contact</a></li>
                 <li><a href="/donate" class="page-scroll"><strong>Donate</strong></a></li>
                 <li><a href="/team" class="page-scroll">Dev Team</a></li>
+                <li class="nav-login">
+                  <a href="/admin/login" class="btn-login" data-animate="animate__fadeInDown animate__delay-05s">Login</a>
+                </li>
             </ul>
             @else
+            @if(session('admin_id'))
             <ul class="nav navbar-nav">
                 <li><a href="/admin">Dashboard</a></li>
                 <li><a href="/admin/announcements">Announcements</a></li>
@@ -44,6 +48,13 @@
                   </form>
                 </li>
             </ul>
+            @else
+            <ul class="nav navbar-nav navbar-right">
+                <li class="nav-login">
+                  <a href="/" class="btn-login" data-animate="animate__fadeInDown animate__delay-05s">Back to Home</a>
+                </li>
+            </ul>
+            @endif
             @endif
         </div>
     </div>
@@ -96,6 +107,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.querySelectorAll('[data-animate]').forEach(function(el){ observer.observe(el); });
 
+  var containers = Array.prototype.slice.call(document.querySelectorAll('#header .container, #announcements .container, #about .container, #priests .container, #services .container, #portfolio .container, #contact .container, #team .container'));
+  containers.forEach(function(el){ if (!el.hasAttribute('data-animate')) { el.classList.add('will-animate'); observer.observe(el); } });
+
+  function setupCardAnimations(){
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.gallery-item'));
+    cards.forEach(function(el, idx){
+      var delay = (0.06 * (idx % 6)).toFixed(2) + 's';
+      el.style.setProperty('--animate-delay', delay);
+      var anim = idx % 2 === 0 ? 'animate__zoomIn' : 'animate__fadeInUp';
+      el.setAttribute('data-animate', anim);
+      observer.observe(el);
+    });
+    var thumbs = Array.prototype.slice.call(document.querySelectorAll('.gallery-item .thumbnail'));
+    thumbs.forEach(function(el, idx){
+      var delay = (0.05 * (idx % 6)).toFixed(2) + 's';
+      el.style.setProperty('--animate-delay', delay);
+      if (!el.getAttribute('data-animate')) el.setAttribute('data-animate', 'animate__fadeIn');
+      observer.observe(el);
+    });
+    var formBoxes = Array.prototype.slice.call(document.querySelectorAll('.contact-form-box'));
+    formBoxes.forEach(function(box, i){
+      var delay = (0.1 * Math.min(i, 2)).toFixed(1) + 's';
+      box.style.setProperty('--animate-delay', delay);
+      if (!box.getAttribute('data-animate')) box.setAttribute('data-animate', 'animate__fadeInUp');
+      observer.observe(box);
+    });
+  }
+  setupCardAnimations();
+
   document.querySelectorAll('a.page-scroll').forEach(function(link){
     link.addEventListener('click', function(e){
       var href = link.getAttribute('href') || '';
@@ -104,7 +144,21 @@ document.addEventListener('DOMContentLoaded', function() {
         var target = document.getElementById(id);
         if (target) {
           e.preventDefault();
-          target.scrollIntoView({ behavior: 'smooth' });
+          var rect = target.getBoundingClientRect();
+          var start = window.scrollY || window.pageYOffset || 0;
+          var offset = 80;
+          var to = Math.max(0, rect.top + start - offset);
+          var startTime = null;
+          var duration = 800;
+          function ease(t){ return t < 0.5 ? 2*t*t : -1 + (4 - 2*t) * t; }
+          function step(ts){
+            if (!startTime) startTime = ts;
+            var p = Math.min((ts - startTime) / duration, 1);
+            var e = ease(p);
+            window.scrollTo(0, start + (to - start) * e);
+            if (p < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
           history.pushState(null, '', '/#' + id);
         }
       }
@@ -170,20 +224,40 @@ document.addEventListener('DOMContentLoaded', function() {
     renderGallery();
     var prevBtn = document.getElementById('gallery-prev');
     var nextBtn = document.getElementById('gallery-next');
+    var gTimer = null;
+    function stopGalleryAuto(){ if (gTimer) { clearInterval(gTimer); gTimer = null; } }
+    function startGalleryAuto(){
+      stopGalleryAuto();
+      gTimer = setInterval(function(){
+        var total = Math.ceil(galleryItems.length / perPage) || 1;
+        gPage = (gPage + 1) % total;
+        renderGallery();
+      }, 5000);
+    }
     if (prevBtn) prevBtn.addEventListener('click', function(){
       var total = Math.ceil(galleryItems.length / perPage) || 1;
       gPage = gPage === 0 ? total - 1 : gPage - 1;
       renderGallery();
+      startGalleryAuto();
     });
     if (nextBtn) nextBtn.addEventListener('click', function(){
       var total = Math.ceil(galleryItems.length / perPage) || 1;
       gPage = (gPage + 1) % total;
       renderGallery();
+      startGalleryAuto();
     });
+    startGalleryAuto();
+    var portfolio = document.getElementById('portfolio');
+    if (portfolio) {
+      portfolio.addEventListener('mouseenter', stopGalleryAuto);
+      portfolio.addEventListener('mouseleave', startGalleryAuto);
+    }
   }
 
   var sc = document.getElementById('servicesCarousel');
   if (sc) {
+    if (sc.getAttribute('data-svc-init') === '1') { return; }
+    sc.setAttribute('data-svc-init','1');
     var dataAttr = sc.getAttribute('data-services');
     var services = [];
     try { services = JSON.parse(dataAttr); } catch (e) { services = []; }
@@ -193,7 +267,8 @@ document.addEventListener('DOMContentLoaded', function() {
     var nextBtn = document.getElementById('svc-next');
     var counter = document.getElementById('svc-counter');
     var current = 0;
-    var auto = true;
+    var timer = null;
+    var lock = false;
     function render(index) {
       slides.forEach(function(el, i){ el.style.display = i === index ? 'block' : 'none'; });
       if (counter) counter.textContent = (index + 1) + ' / ' + slides.length;
@@ -202,11 +277,13 @@ document.addEventListener('DOMContentLoaded', function() {
       if (d) d.classList.add('active');
       current = index;
     }
-    function prev() { render(current === 0 ? slides.length - 1 : current - 1); }
-    function next() { render(current === slides.length - 1 ? 0 : current + 1); }
+    function stopAuto(){ if (timer) { clearInterval(timer); timer = null; } }
+    function startAuto(){ stopAuto(); timer = setInterval(function(){ if (lock) return; lock = true; render(current === slides.length - 1 ? 0 : current + 1); setTimeout(function(){ lock = false; }, 300); }, 5000); }
+    function prev() { if (lock) return; lock = true; stopAuto(); render(current === 0 ? slides.length - 1 : current - 1); setTimeout(function(){ lock = false; startAuto(); }, 300); }
+    function next() { if (lock) return; lock = true; stopAuto(); render(current === slides.length - 1 ? 0 : current + 1); setTimeout(function(){ lock = false; startAuto(); }, 300); }
     if (prevBtn) prevBtn.addEventListener('click', prev);
     if (nextBtn) nextBtn.addEventListener('click', next);
-    dots.forEach(function(d){ d.addEventListener('click', function(){ var i = parseInt(d.getAttribute('data-svc-dot'), 10); if (!isNaN(i)) render(i); }); });
+    dots.forEach(function(d){ d.addEventListener('click', function(){ var i = parseInt(d.getAttribute('data-svc-dot'), 10); if (!isNaN(i)) { if (lock) return; lock = true; stopAuto(); render(i); setTimeout(function(){ lock = false; startAuto(); }, 300); } }); });
     var svcImgs = Array.prototype.slice.call(sc.querySelectorAll('.svc-image img'));
     var overlay = null, overlayImg = null, overlayPrev = null, overlayNext = null, overlayClose = null, photoIndex = 0;
     function openOverlay(images, startIdx) {
@@ -218,15 +295,17 @@ document.addEventListener('DOMContentLoaded', function() {
       overlayPrev = document.createElement('button'); overlayPrev.className = 'lb-prev'; overlayPrev.textContent = '‹';
       overlayNext = document.createElement('button'); overlayNext.className = 'lb-next'; overlayNext.textContent = '›';
       function draw(){ overlayImg.src = images[photoIndex]; }
-      overlayClose.addEventListener('click', function(){ overlay.classList.remove('open'); document.body.removeChild(overlay); overlay = null; auto = true; });
+      overlayClose.addEventListener('click', function(){ overlay.classList.remove('open'); document.body.removeChild(overlay); overlay = null; startAuto(); });
       overlayPrev.addEventListener('click', function(){ photoIndex = photoIndex === 0 ? images.length - 1 : photoIndex - 1; draw(); });
       overlayNext.addEventListener('click', function(){ photoIndex = photoIndex === images.length - 1 ? 0 : photoIndex + 1; draw(); });
       overlay.appendChild(overlayImg); overlay.appendChild(overlayClose); overlay.appendChild(overlayPrev); overlay.appendChild(overlayNext);
-      document.body.appendChild(overlay); overlay.classList.add('open'); draw(); auto = false;
+      document.body.appendChild(overlay); overlay.classList.add('open'); draw(); stopAuto();
     }
     svcImgs.forEach(function(img){ img.addEventListener('click', function(){ var svc = services[current] || {}; var images = svc.images || []; openOverlay(images, 0); }); });
     render(0);
-    setInterval(function(){ if (auto) next(); }, 5000);
+    startAuto();
+    sc.addEventListener('mouseenter', function(){ stopAuto(); });
+    sc.addEventListener('mouseleave', function(){ startAuto(); });
   }
 });
 </script>

@@ -33,11 +33,11 @@
             </div>
             <div class="announcement-content" data-animate="animate__fadeIn animate__delay-2s">
               @foreach($announcements as $a)
-                <div class="announcement-item" data-ann-index style="display:none;">
-                  <h3>{{ $a->title }}</h3>
-                  <p class="author">Posted by: {{ $a->author ?? 'System Admin' }}</p>
-                  <p>{{ $a->content }}</p>
-                </div>
+              <div class="announcement-item" data-ann-index data-animate="animate__zoomIn animate__faster" style="display:none;">
+                <h3>{{ $a->title }}</h3>
+                <p class="author">Posted by: {{ $a->author ?? 'System Admin' }}</p>
+                <p>{{ $a->content }}</p>
+              </div>
               @endforeach
             </div>
           </div>
@@ -72,44 +72,44 @@
 <div id="priests" class="parish-info-container" data-animate="animate__fadeInUp animate__delay-1s">
   <div class="container">
     <h2 class="parish-info-title">Parish Information</h2>
-    <div class="row parish-info-row">
-      <div class="col-md-6 parish-info-col">
-        <div class="section-title text-center"><h3>Parish Priests</h3></div>
-        @php($priests = \App\Models\Priest::latest()->get())
-        @forelse($priests as $p)
-          <div class="priest-card" data-animate="animate__fadeInUp animate__delay-1s">
-            <div class="priest-image">
-              @if($p->image)
-                <img src="{{ $p->image }}" alt="{{ $p->name }}">
-              @else
-                <img src="https://via.placeholder.com/300x200?text=No+Image" alt="{{ $p->name }}">
-              @endif
-            </div>
-            <div class="priest-content">
-              <h4>{{ $p->name }}</h4>
-              <p>{{ $p->description }}</p>
-            </div>
-          </div>
-        @empty
-          <p>No entries yet.</p>
-        @endforelse
-      </div>
-      <div class="col-md-6 parish-info-col">
-        <div class="section-title text-center"><h3>Weekly Mass Schedule</h3></div>
-        @php($schedules = \App\Models\Schedule::all())
-        <div class="table-wrapper">
-        <table class="table schedule-table">
-          <thead><tr><th>Time</th><th>Language</th></tr></thead>
-          <tbody>
-          @forelse($schedules as $s)
-            <tr><td>{{ $s->time }}</td><td>{{ $s->language }}</td></tr>
-          @empty
-            <tr><td colspan="2">No schedule posted.</td></tr>
-          @endforelse
-          </tbody>
-        </table>
-        </div>
-      </div>
+    @php($priests = \App\Models\Priest::latest()->get())
+    @php($schedules = \App\Models\Schedule::all())
+    @php($rows = min($priests->count(), $schedules->count()))
+    <div class="table-wrapper">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th colspan="3" class="text-center">Parish Priests</th>
+            <th colspan="2" class="text-center">Weekly Mass Schedule</th>
+          </tr>
+          <tr>
+            <th>Photo</th>
+            <th>Priest</th>
+            <th>Role</th>
+            <th>Time</th>
+            <th>Language</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for($i = 0; $i < $rows; $i++)
+            @php($p = $priests[$i] ?? null)
+            @php($s = $schedules[$i] ?? null)
+            <tr data-animate="animate__zoomIn animate__faster">
+              <td style="width:80px;">
+                @if($p && $p->image)
+                  <img src="{{ $p->image }}" alt="{{ $p->name }}" class="img-responsive" style="max-height:60px; border-radius:6px;" />
+                @elseif($p)
+                  <img src="https://via.placeholder.com/60x60?text=No+Image" alt="{{ $p->name }}" class="img-responsive" style="border-radius:6px;" />
+                @endif
+              </td>
+              <td>@if($p)<strong>{{ $p->name }}</strong>@endif</td>
+              <td>@if($p){{ $p->description }}@endif</td>
+              <td>@if($s){{ $s->time }}@endif</td>
+              <td>@if($s){{ $s->language }}@endif</td>
+            </tr>
+          @endfor
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -191,19 +191,19 @@
       <h2>Gallery</h2>
       <p>Moments from our parish life</p>
     </div>
-    <div class="row">
-      @php($items = \App\Models\GalleryItem::latest()->get())
-      @forelse($items as $item)
-        <div class="col-sm-6 col-md-4 col-lg-4 gallery-item" data-animate="animate__fadeInUp" style="display:none; --animate-delay: {{ ($loop->index % 3) * 0.15 }}s;">
-          <div class="thumbnail">
-            <img src="{{ $item->url }}" alt="{{ $item->title }}">
-            <div class="caption"><h4>{{ $item->title }}</h4></div>
-          </div>
+        <div class="row">
+          @php($items = \App\Models\GalleryItem::latest()->get())
+          @forelse($items as $item)
+            <div class="col-sm-6 col-md-3 col-lg-3 gallery-item" data-animate="animate__fadeInUp" style="display:none; --animate-delay: {{ ($loop->index % 3) * 0.15 }}s;">
+              <div class="thumbnail">
+                <img src="/image/square?src={{ $item->url }}&size=400" alt="{{ $item->title }}">
+                <div class="caption"><h4>{{ $item->title }}</h4></div>
+              </div>
+            </div>
+          @empty
+            <div class="col-md-12">No images yet.</div>
+          @endforelse
         </div>
-      @empty
-        <div class="col-md-12">No images yet.</div>
-      @endforelse
-    </div>
     <div class="row" style="margin-top:20px; margin-bottom:20px;">
       <div class="col-md-12 text-center">
         <button class="btn btn-primary" id="gallery-prev">&laquo;</button>
@@ -219,25 +219,27 @@
     <div class="row">
       <div class="col-md-8">
         <div class="section-title" data-animate="animate__fadeInUp animate__delay-05s"><h2>Contact us Now!</h2></div>
-        <form method="POST" action="/contact">
-          @csrf
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <input type="text" id="name" name="name" class="form-control" placeholder="Name" required />
+        <div class="contact-form-box">
+          <form method="POST" action="/contact">
+            @csrf
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <input type="text" id="name" name="name" class="form-control" placeholder="Name" required />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <input type="email" id="email" name="email" class="form-control" placeholder="Email" required />
+                </div>
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <input type="email" id="email" name="email" class="form-control" placeholder="Email" required />
-              </div>
+            <div class="form-group">
+              <textarea name="message" id="message" class="form-control" rows="5" placeholder="Message" required></textarea>
             </div>
-          </div>
-          <div class="form-group">
-            <textarea name="message" id="message" class="form-control" rows="4" placeholder="Message" required></textarea>
-          </div>
-          <button type="submit" class="btn btn-custom btn-lg">Send Message</button>
-        </form>
+            <button type="submit" class="btn btn-custom btn-lg">Send Message</button>
+          </form>
+        </div>
       </div>
       <div class="col-md-3 col-md-offset-1 contact-info">
         <div class="contact-item">

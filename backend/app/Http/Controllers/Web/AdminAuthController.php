@@ -14,6 +14,42 @@ class AdminAuthController extends Controller
         return view('admin.login');
     }
 
+    public function showRegister()
+    {
+        return view('admin.register');
+    }
+
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:admins,email',
+            'password' => 'required|string|min:6',
+        ]);
+        $admin = Admin::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+        ]);
+        $request->session()->put('admin_id', $admin->id);
+        $request->session()->put('admin_name', $admin->name);
+        return redirect('/admin')->with('status', 'Registration successful');
+    }
+
+    public function showForgotPassword()
+    {
+        return view('admin.forgot');
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email',
+        ]);
+        // In a production app, send a reset link. Here we flash a status.
+        return redirect('/admin/login')->with('status', 'If the email exists, a reset link was sent.');
+    }
+
     public function login(Request $request)
     {
         $validated = $request->validate([
@@ -37,4 +73,3 @@ class AdminAuthController extends Controller
         return redirect('/');
     }
 }
-

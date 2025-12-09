@@ -2,11 +2,48 @@
 
 @section('content')
 <div class="container" id="admin-donations" data-animate="animate__fadeInUp animate__delay-05s">
-  <div class="section-title text-center"><h2>Donations</h2></div>
-  <div class="panel panel-default">
-    <div class="panel-body">
-      <div class="table-responsive">
-        <table class="table table-striped">
+  <div class="admin-shell">
+    <aside class="admin-sidebar" data-animate="animate__fadeInLeft">
+      <div class="admin-brand">St. Joseph Admin</div>
+      <nav class="admin-nav">
+        <a href="/admin" class="admin-nav-item"><i class="fa fa-home"></i><span>Home</span></a>
+        <a href="/admin/announcements" class="admin-nav-item"><i class="fa fa-bullhorn"></i><span>Announcements</span></a>
+        <a href="/admin/priest" class="admin-nav-item"><i class="fa fa-user"></i><span>Priests</span></a>
+        <a href="/admin/gallery" class="admin-nav-item"><i class="fa fa-picture-o"></i><span>Gallery</span></a>
+        <a href="/admin/donations" class="admin-nav-item active"><i class="fa fa-gift"></i><span>Donations</span></a>
+        <a href="/admin/inquiries" class="admin-nav-item"><i class="fa fa-envelope"></i><span>Inquiries</span></a>
+      </nav>
+    </aside>
+
+    <main class="admin-content">
+      <div class="admin-topbar">
+        <div class="admin-title">Donations</div>
+        <div class="admin-actions">
+          <a href="/admin" class="btn btn-login-secondary">← Back to Dashboard</a>
+          <div class="admin-user">{{ session('admin_name') }}</div>
+        </div>
+      </div>
+
+      <div class="panel panel-default" style="margin-bottom:16px;">
+        <div class="panel-heading">Donation QR</div>
+        <div class="panel-body">
+          <form method="POST" action="/admin/donations/qr" enctype="multipart/form-data">
+            @csrf
+            <div class="form-group"><label>Upload QR Image</label><input type="file" name="qr_image" class="form-control" accept="image/*" required /></div>
+            <button type="submit" class="btn btn-primary">Save QR</button>
+          </form>
+          @if(!empty($qrPath))
+            <div style="margin-top:12px;">
+              <img src="{{ $qrPath }}" alt="Donation QR" class="img-responsive" style="max-height:260px;" />
+            </div>
+          @endif
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <div class="table-responsive">
+            <table class="table table-striped">
           <thead><tr><th>Name</th><th>Amount</th><th>Reference</th><th>Status</th></tr></thead>
           <tbody>
           @forelse($items as $d)
@@ -23,7 +60,8 @@
         </table>
       </div>
     </div>
+      </div>
+    </main>
   </div>
 </div>
 @endsection
-

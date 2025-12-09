@@ -113,11 +113,28 @@ class AdminController extends Controller
     public function galleryStore(Request $request)
     {
         $this->requireAuth($request);
-        $validated = $request->validate([
+        $validatedTitle = $request->validate([
             'title' => 'required|string|max:255',
-            'url' => 'required|url',
         ]);
-        GalleryItem::create($validated);
+
+        $imageUrl = $request->input('url');
+        $file = $request->file('image_file');
+        if ($file) {
+            $request->validate([
+                'image_file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            ]);
+            $dir = public_path('uploads/gallery');
+            if (!is_dir($dir)) { @mkdir($dir, 0777, true); }
+            $name = uniqid('img_').'.'.$file->getClientOriginalExtension();
+            $file->move($dir, $name);
+            $finalUrl = '/uploads/gallery/'.$name;
+        } else {
+            $request->validate([
+                'url' => 'required|url',
+            ]);
+            $finalUrl = $imageUrl;
+        }
+        GalleryItem::create(['title' => $validatedTitle['title'], 'url' => $finalUrl]);
         return redirect('/admin/gallery')->with('status', 'Image added');
     }
 
@@ -125,11 +142,26 @@ class AdminController extends Controller
     {
         $this->requireAuth($request);
         $item = GalleryItem::findOrFail($id);
-        $validated = $request->validate([
+        $validatedTitle = $request->validate([
             'title' => 'required|string|max:255',
-            'url' => 'required|url',
         ]);
-        $item->update($validated);
+        $file = $request->file('image_file');
+        if ($file) {
+            $request->validate([
+                'image_file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            ]);
+            $dir = public_path('uploads/gallery');
+            if (!is_dir($dir)) { @mkdir($dir, 0777, true); }
+            $name = uniqid('img_').'.'.$file->getClientOriginalExtension();
+            $file->move($dir, $name);
+            $finalUrl = '/uploads/gallery/'.$name;
+        } else {
+            $request->validate([
+                'url' => 'required|url',
+            ]);
+            $finalUrl = $request->input('url');
+        }
+        $item->update(['title' => $validatedTitle['title'], 'url' => $finalUrl]);
         return redirect('/admin/gallery')->with('status', 'Image updated');
     }
 
@@ -145,7 +177,22 @@ class AdminController extends Controller
     {
         $this->requireAuth($request);
         $items = Donation::latest()->get();
-        return view('admin.donations.index', compact('items'));
+        $qrPath = file_exists(public_path('uploads/donation_qr.png')) ? '/uploads/donation_qr.png' : null;
+        return view('admin.donations.index', compact('items', 'qrPath'));
+    }
+
+    public function donationsUpdateQR(Request $request)
+    {
+        $this->requireAuth($request);
+        $request->validate([
+            'qr_image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+        $dir = public_path('uploads');
+        if (!is_dir($dir)) { @mkdir($dir, 0777, true); }
+        $file = $request->file('qr_image');
+        $name = 'donation_qr.png';
+        $file->move($dir, $name);
+        return redirect('/admin/donations')->with('status', 'Donation QR updated');
     }
 
     public function inquiriesIndex(Request $request)
@@ -155,4 +202,3 @@ class AdminController extends Controller
         return view('admin.inquiries.index', compact('items'));
     }
 }
-

@@ -6,19 +6,26 @@
     <div class="col-md-6">
       <div class="login-hero" data-animate="animate__fadeInLeft">
         <div class="login-hero-content">
-          <h2>St. Joseph Shrine</h2>
-          <p>Serve with excellence and care.</p>
+          <h2>Join the Admins</h2>
+          <p>Manage content with care.</p>
         </div>
       </div>
     </div>
     <div class="col-md-6">
       <div class="login-card" data-animate="animate__zoomIn">
         <div class="login-header text-center">
-          <h2>Welcome</h2>
-          <p>Login with Email</p>
+          <h2>Create Account</h2>
+          <p>Register with Email</p>
         </div>
-        <form method="POST" action="/admin/login">
+        <form method="POST" action="/admin/register">
           @csrf
+          <div class="form-group">
+            <label for="name" class="sr-only">Name</label>
+            <div class="input-group login-input">
+              <span class="input-group-addon"><i class="fa fa-user"></i></span>
+              <input type="text" class="form-control" id="name" name="name" placeholder="Name" required />
+            </div>
+          </div>
           <div class="form-group">
             <label for="email" class="sr-only">Email</label>
             <div class="input-group login-input">
@@ -34,18 +41,18 @@
             </div>
           </div>
           <div class="text-right"><a href="/admin/forgot-password" class="btn-login-secondary">Forgot your password?</a></div>
-          <button type="submit" class="btn btn-login-primary btn-block">Login</button>
-          @if(session('admin_id'))
-          <form method="POST" action="/admin/logout" style="margin-top: 12px;">
-            @csrf
-            <button type="submit" class="btn btn-danger btn-block">Logout</button>
-          </form>
-          @endif
+          <button type="submit" class="btn btn-login-primary btn-block">Register</button>
           <div class="text-center login-register">
-            <span>Don't have an account?</span> <a href="/admin/register" class="btn-login-secondary">Register now</a>
+            <span>Already have an account?</span> <a href="/admin/login" class="btn-login-secondary">Login</a>
+          </div>
+          <div class="text-right" style="margin-top:12px;">
+            <a href="/admin" class="btn btn-login-secondary">← Back to Dashboard</a>
           </div>
         </form>
       </div>
     </div>
+  </div>
+  <div class="text-center" style="margin-top:12px;">
+    <p>Use a valid email and strong password.</p>
   </div>
 @endsection
