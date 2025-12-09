@@ -16,6 +16,11 @@
     <div class="container">
         <div class="navbar-header">
             <a class="navbar-brand" href="/">ST. JOSEPH SHRINE{{ $isAdmin ? ' Admin' : '' }}</a>
+            <button type="button" id="menuToggle" class="navbar-toggle" aria-controls="bs-example-navbar-collapse-1" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             @if(!$isAdmin)
@@ -185,6 +190,17 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   window.addEventListener('scroll', updateActiveNav);
   updateActiveNav();
+
+  var toggleBtn = document.getElementById('menuToggle');
+  var collapse = document.getElementById('bs-example-navbar-collapse-1');
+  if (toggleBtn && collapse) {
+    function closeMenu(){ collapse.classList.remove('open'); document.body.classList.remove('menu-open'); }
+    toggleBtn.addEventListener('click', function(){
+      var isOpen = collapse.classList.toggle('open');
+      document.body.classList.toggle('menu-open', isOpen);
+    });
+    Array.prototype.slice.call(collapse.querySelectorAll('a')).forEach(function(a){ a.addEventListener('click', closeMenu); });
+  }
 
   var items = Array.prototype.slice.call(document.querySelectorAll('.announcement-item'));
   if (items.length) {
