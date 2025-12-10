@@ -10,6 +10,7 @@
         <a href="/admin/announcements" class="admin-nav-item"><i class="fa fa-bullhorn"></i><span>Announcements</span></a>
         <a href="/admin/priest" class="admin-nav-item"><i class="fa fa-user"></i><span>Priests</span></a>
         <a href="/admin/gallery" class="admin-nav-item"><i class="fa fa-picture-o"></i><span>Gallery</span></a>
+        <a href="/admin/schedule" class="admin-nav-item"><i class="fa fa-calendar"></i><span>Parish Schedule</span></a>
         <a href="/admin/donations" class="admin-nav-item"><i class="fa fa-gift"></i><span>Donations</span></a>
         <a href="/admin/inquiries" class="admin-nav-item"><i class="fa fa-envelope"></i><span>Inquiries</span></a>
       </nav>
@@ -19,9 +20,6 @@
       <div class="admin-topbar">
         <div class="admin-title">Search</div>
         <div class="admin-actions">
-          <form action="/admin/search" method="GET" style="display:inline-block; width:300px;">
-            <input type="text" name="q" value="{{ $q }}" class="form-control" placeholder="Search anything" />
-          </form>
           <div class="admin-user">{{ session('admin_name') }}</div>
         </div>
       </div>
@@ -69,4 +67,3 @@
   </div>
 </div>
 @endsection
-

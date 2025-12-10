@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>St. Joseph Parish</title>
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/style.css">
@@ -12,6 +13,7 @@
 </head>
 <body>
 @php($isAdmin = request()->is('admin*'))
+@php($isAuth = request()->is('login') || request()->is('register') || request()->is('forgot-password') || request()->is('reset-password'))
 <nav id="menu" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
@@ -24,6 +26,13 @@
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             @if(!$isAdmin)
+            @if($isAuth)
+            <ul class="nav navbar-nav navbar-right">
+                <li class="nav-login">
+                  <a href="/" class="btn-login" data-animate="animate__fadeInDown animate__delay-05s">Back to Home</a>
+                </li>
+            </ul>
+            @else
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="/#announcements" class="page-scroll">Announcements</a></li>
                 <li><a href="/#about" class="page-scroll">About</a></li>
@@ -32,42 +41,94 @@
                 <li><a href="/#portfolio" class="page-scroll">Gallery</a></li>
                 <li><a href="/#contact" class="page-scroll">Contact Us</a></li>
                 <li><a href="/donate" class="page-scroll"><strong>Donate</strong></a></li>
-                <li><a href="/team" class="page-scroll">Dev Team</a></li>
+                @guest
                 <li class="nav-login">
-                  <a href="/admin/login" class="btn-login" data-animate="animate__fadeInDown animate__delay-05s">Login</a>
+                  <a href="/login" class="btn-login" data-animate="animate__fadeInDown animate__delay-05s">Login</a>
                 </li>
+                @endguest
             </ul>
-            @else
-            @if(session('admin_id'))
-            <ul class="nav navbar-nav">
-                <li><a href="/admin">Dashboard</a></li>
-                <li><a href="/admin/announcements">Announcements</a></li>
-                <li><a href="/admin/priest">Priest</a></li>
-                <li><a href="/admin/gallery">Gallery</a></li>
-                <li><a href="/admin/services">Services</a></li>
-                <li><a href="/admin/donations">Donations</a></li>
-                <li><a href="/admin/inquiries">Inquiries</a></li>
-                <li>
-                  <form method="POST" action="/admin/logout" style="display:inline-block; margin:0; padding:10px 15px;">
-                    @csrf
-                    <button type="submit" class="btn btn-link" style="padding:0;">Logout</button>
-                  </form>
-                </li>
-            </ul>
-            @else
+            @auth
             <ul class="nav navbar-nav navbar-right">
-                <li class="nav-login">
-                  <a href="/" class="btn-login" data-animate="animate__fadeInDown animate__delay-05s">Back to Home</a>
+                <li class="user-menu-container">
+                  <span class="nav-welcome">Welcome, {{ auth()->user()->name }} <span class="role-badge {{ (int)(auth()->user()->role_id ?? 1) === 2 ? 'role-admin' : 'role-user' }}">{{ (int)(auth()->user()->role_id ?? 1) === 2 ? 'Admin' : 'User' }}</span></span>
+                  <button type="button" id="userMenuToggle" class="nav-burger user-menu" aria-label="Open user menu" aria-expanded="false">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                  </button>
+                  <div id="userMenuPanel" class="user-menu-panel">
+                    <ul class="nav">
+                        @if(auth()->check() && (int)(auth()->user()->role_id ?? 1) === 2)
+                          <li><a href="/admin">Admin</a></li>
+                          <li>
+                            <form method="POST" action="/logout">
+                                @csrf
+                                <button type="submit" class="btn btn-danger" style="width:100%;">Logout</button>
+                            </form>
+                          </li>
+                        @else
+                          <li><a href="/donate">Make a Donation</a></li>
+                          <li><a href="/user/donations">My Donations</a></li>
+                          <li><a href="/user/calendar">Mass Calendar</a></li>
+                          <li>
+                            <form method="POST" action="/logout">
+                                @csrf
+                                <button type="submit" class="btn btn-danger" style="width:100%;">Logout</button>
+                            </form>
+                          </li>
+                        @endif
+                    </ul>
+                  </div>
                 </li>
             </ul>
+            @endauth
+            @endif
+            @else
+                @if(session('admin_id') || (auth()->check() && (int)(auth()->user()->role_id ?? 1) === 2))
+                <ul class="nav navbar-nav navbar-right">
+                  <li class="user-menu-container">
+                    <span class="nav-welcome">Welcome, {{ session('admin_name') ?? (auth()->user()->name ?? 'Admin') }} <span class="role-badge {{ (int)(auth()->user()->role_id ?? 2) === 2 ? 'role-admin' : 'role-user' }}">{{ (int)(auth()->user()->role_id ?? 2) === 2 ? 'Admin' : 'User' }}</span></span>
+                    <button type="button" id="userMenuToggle" class="nav-burger user-menu" aria-label="Open user menu" aria-expanded="false">
+                      <span class="bar"></span>
+                      <span class="bar"></span>
+                      <span class="bar"></span>
+                    </button>
+                    <div id="userMenuPanel" class="user-menu-panel">
+                      <ul class="nav">
+                        <li><a href="/">View Homepage</a></li>
+                        <li><a href="/admin">Dashboard</a></li>
+                        <li><a href="/admin/announcements">Announcements</a></li>
+                        <li><a href="/admin/priest">Priest</a></li>
+                        <li><a href="/admin/gallery">Gallery</a></li>
+                        <li><a href="/admin/schedule">Parish Schedule</a></li>
+                        <li><a href="/admin/services">Services</a></li>
+                        <li><a href="/admin/donations">Donations</a></li>
+                        <li><a href="/admin/inquiries">Inquiries</a></li>
+                        <li>
+                          <form method="POST" action="/admin/logout">
+                            @csrf
+                            <button type="submit" class="btn btn-danger" style="width:100%;">Logout</button>
+                          </form>
+                        </li>
+                      </ul>
+                    </div>
+                  </li>
+                </ul>
+            @else
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="nav-login">
+                      <a href="/" class="btn-login" data-animate="animate__fadeInDown animate__delay-05s">Back to Home</a>
+                    </li>
+                </ul>
             @endif
             @endif
         </div>
     </div>
     <div id="menuMask" class="menu-mask"></div>
+    
     </nav>
 
-    <div class="content-wrapper" style="margin-top:80px;">
+    <div class="content-wrapper{{ $isAuth ? ' auth-page' : '' }}" style="margin-top:80px;">
         @yield('content')
     </div>
 
@@ -93,6 +154,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  if (window.jQuery) {
+    var mt = document.querySelector('meta[name="csrf-token"]');
+    if (mt && mt.content) {
+      jQuery.ajaxSetup({ headers: { 'X-CSRF-TOKEN': mt.content } });
+    }
+  }
   if (window.lucide && typeof lucide.createIcons === 'function') { lucide.createIcons(); }
   var flashStatus = @json(session('status'));
   if (flashStatus) {
@@ -116,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.querySelectorAll('[data-animate]').forEach(function(el){ observer.observe(el); });
 
-  var containers = Array.prototype.slice.call(document.querySelectorAll('#header .container, #announcements .container, #about .container, #priests .container, #services .container, #portfolio .container, #contact .container, #team .container'));
+  var containers = Array.prototype.slice.call(document.querySelectorAll('#header .container, #announcements .container, #about .container, #priests .container, #services .container, #portfolio .container, #contact .container'));
   containers.forEach(function(el){ if (!el.hasAttribute('data-animate')) { el.classList.add('will-animate'); observer.observe(el); } });
 
   function setupCardAnimations(){
@@ -210,6 +277,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     Array.prototype.slice.call(collapse.querySelectorAll('a')).forEach(function(a){ a.addEventListener('click', closeMenu); });
     if (mask) mask.addEventListener('click', closeMenu);
+  }
+
+  var userToggle = document.getElementById('userMenuToggle');
+  var userPanel = document.getElementById('userMenuPanel');
+  if (userToggle && userPanel && mask) {
+    function closeUserMenu(){ userPanel.classList.remove('open'); mask.style.display = 'none'; userToggle.classList.remove('active'); userToggle.setAttribute('aria-expanded','false'); }
+    userToggle.addEventListener('click', function(){
+      var isOpen = userPanel.classList.toggle('open');
+      mask.style.display = isOpen ? 'block' : 'none';
+      userToggle.classList.toggle('active', isOpen);
+      userToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+    Array.prototype.slice.call(userPanel.querySelectorAll('a,button')).forEach(function(a){ a.addEventListener('click', closeUserMenu); });
+    if (mask) mask.addEventListener('click', closeUserMenu);
   }
 
   var items = Array.prototype.slice.call(document.querySelectorAll('.announcement-item'));

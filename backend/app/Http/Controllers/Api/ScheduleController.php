@@ -24,6 +24,7 @@ class ScheduleController extends Controller
         $validated = $request->validate([
             'time' => 'required|string|max:50',
             'language' => 'required|string|max:50',
+            'start_at' => 'nullable|date',
         ]);
         $schedule = Schedule::create($validated);
         return response()->json($schedule, 201);
@@ -47,6 +48,7 @@ class ScheduleController extends Controller
         $validated = $request->validate([
             'time' => 'required|string|max:50',
             'language' => 'required|string|max:50',
+            'start_at' => 'nullable|date',
         ]);
         $schedule->update($validated);
         return response()->json($schedule);

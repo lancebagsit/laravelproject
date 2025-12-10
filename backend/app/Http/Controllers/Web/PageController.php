@@ -7,6 +7,8 @@ use App\Models\Announcement;
 use App\Models\GalleryItem;
 use App\Models\Priest;
 use App\Models\Schedule;
+use App\Models\Donation;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class PageController extends Controller
@@ -49,5 +51,39 @@ class PageController extends Controller
     public function team()
     {
         return view('team');
+    }
+
+    public function dashboard()
+    {
+        if (!auth()->check()) {
+            abort(302, '', ['Location' => '/login']);
+        }
+        if ((int)(auth()->user()->role_id ?? 1) === 2) {
+            abort(302, '', ['Location' => '/admin']);
+        }
+        return view('user.dashboard');
+    }
+    public function userDonations()
+    {
+        if (!Auth::check()) { abort(302, '', ['Location' => '/login']); }
+        $items = Donation::where('user_id', Auth::id())->latest()->get();
+        return view('user.donations', compact('items'));
+    }
+
+    public function userCalendar()
+    {
+        $month = request()->query('month');
+        $base = $month ? \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth() : now()->startOfMonth();
+        $start = $base->copy()->startOfMonth();
+        $end = $base->copy()->endOfMonth();
+        $schedules = Schedule::with('priest')
+            ->whereNotNull('start_at')
+            ->whereBetween('start_at', [$start, $end])
+            ->orderBy('start_at')
+            ->get();
+        return view('user.calendar', [
+            'schedules' => $schedules,
+            'month' => $base->format('Y-m'),
+        ]);
     }
 }

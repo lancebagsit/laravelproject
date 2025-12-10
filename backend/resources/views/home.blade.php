@@ -49,6 +49,45 @@
   </div>
 </div>
 
+@php($upcoming = \App\Models\Schedule::with('priest')->whereNotNull('start_at')->where('start_at','>=', now())->orderBy('start_at')->take(6)->get())
+@if($upcoming->count())
+<div id="upcoming" class="text-center" data-animate="animate__fadeInUp animate__delay-05s">
+  <div class="container">
+    <div class="section-title">
+      <h2>Upcoming Masses</h2>
+      <p>Weekend masses scheduled by the parish</p>
+    </div>
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <ul class="list-unstyled" style="text-align:left;">
+              @foreach($upcoming as $m)
+                @php($pr = optional($m->priest))
+                <li style="padding:8px 0; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:10px;">
+                  @if($pr && $pr->image)
+                    <img src="{{ $pr->image }}" alt="{{ $pr->name }}" style="height:32px; width:32px; border-radius:50%; object-fit:cover;" />
+                  @else
+                    <img src="https://via.placeholder.com/32x32?text=No+Img" alt="Priest" style="height:32px; width:32px; border-radius:50%; object-fit:cover;" />
+                  @endif
+                  <span>
+                    <strong>{{ \Carbon\Carbon::parse($m->start_at)->format('F j, Y') }}</strong>
+                    — {{ \Carbon\Carbon::parse($m->start_at)->format('g:i A') }}
+                    @if($pr && $pr->name)
+                      <span style="color:#777;">with {{ $pr->name }}</span>
+                    @endif
+                  </span>
+                </li>
+              @endforeach
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+@endif
+
 <div id="about" data-animate="animate__fadeInUp animate__delay-05s">
   <div class="container">
     <div class="row">
@@ -72,47 +111,85 @@
 <div id="priests" class="parish-info-container" data-animate="animate__fadeInUp animate__delay-1s">
   <div class="container">
     <h2 class="parish-info-title">Parish Schedule</h2>
-    @php($priests = \App\Models\Priest::latest()->get())
-    @php($schedules = \App\Models\Schedule::latest()->get())
-    @php($rows = min($priests->count(), $schedules->count()))
-    <div class="table-wrapper">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th colspan="3" class="text-center">Parish Priests</th>
-            <th colspan="2" class="text-center">Weekly Mass Schedule</th>
-          </tr>
-          <tr>
-            <th>Photo</th>
-            <th>Priest</th>
-            <th>Role</th>
-            <th>Time</th>
-            <th>Language</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for($i = 0; $i < $rows; $i++)
-            @php($p = $priests[$i] ?? null)
-            @php($s = $schedules[$i] ?? null)
-            <tr data-animate="animate__zoomIn animate__faster">
-              <td style="width:80px;">
-                @if($p && $p->image)
-                  <img src="{{ $p->image }}" data-full="{{ $p->image }}" alt="{{ $p->name }}" class="img-responsive priest-photo" style="max-height:60px; border-radius:6px; cursor:pointer;" />
-                @elseif($p)
-                  <img src="https://via.placeholder.com/60x60?text=No+Image" alt="{{ $p->name }}" class="img-responsive" style="border-radius:6px;" />
-                @endif
-              </td>
-              <td>@if($p)<strong>{{ $p->name }}</strong>@endif</td>
-              <td>@if($p){{ $p->description }}@endif</td>
-              <td>@if($s){{ $s->time }}@endif</td>
-              <td>@if($s){{ $s->language }}@endif</td>
-            </tr>
-          @endfor
-        </tbody>
-      </table>
+    @php($now = \Carbon\Carbon::now())
+    @php($sat = $now->copy()->next(\Carbon\Carbon::SATURDAY))
+    @php($sun = $now->copy()->next(\Carbon\Carbon::SUNDAY))
+    @php($satMasses = \App\Models\Schedule::with('priest')->whereDate('start_at', $sat->toDateString())->orderBy('start_at')->get())
+    @php($sunMasses = \App\Models\Schedule::with('priest')->whereDate('start_at', $sun->toDateString())->orderBy('start_at')->get())
+    <div class="panel panel-default" style="margin-bottom:16px;">
+      <div class="panel-heading" style="display:flex; gap:8px; align-items:center;">
+        <strong>Upcoming Weekend</strong>
+        <div style="margin-left:auto; display:flex; gap:8px;">
+          <button type="button" class="btn btn-login-secondary" id="btn-saturday">Saturday ({{ $sat->format('F j') }})</button>
+          <button type="button" class="btn btn-login-secondary" id="btn-sunday">Sunday ({{ $sun->format('F j') }})</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="list-saturday" style="display:{{ $satMasses->count() ? 'block' : 'none' }};">
+          @if($satMasses->count())
+            <ul class="list-unstyled">
+              @foreach($satMasses as $m)
+                <li style="padding:6px 0; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:10px;">
+                  @php($pr = optional($m->priest))
+                  @if($pr && $pr->image)
+                    <img src="{{ $pr->image }}" alt="{{ $pr->name }}" style="height:28px; width:28px; border-radius:50%; object-fit:cover;" />
+                  @else
+                    <img src="https://via.placeholder.com/28x28?text=No+Img" alt="Priest" style="height:28px; width:28px; border-radius:50%; object-fit:cover;" />
+                  @endif
+                  <span>
+                    <strong>{{ \Carbon\Carbon::parse($m->start_at)->format('g:i A') }}</strong>
+                    @if($m->language) <span style="color:#777;">{{ $m->language }}</span> @endif
+                    @if($pr && $pr->name) <span style="color:#777;">with {{ $pr->name }}</span> @endif
+                  </span>
+                </li>
+              @endforeach
+            </ul>
+          @else
+            <p class="text-center" style="margin:0;">No masses scheduled for Saturday.</p>
+          @endif
+        </div>
+        <div id="list-sunday" style="display:{{ !$satMasses->count() && $sunMasses->count() ? 'block' : 'none' }};">
+          @if($sunMasses->count())
+            <ul class="list-unstyled">
+              @foreach($sunMasses as $m)
+                <li style="padding:6px 0; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:10px;">
+                  @php($pr = optional($m->priest))
+                  @if($pr && $pr->image)
+                    <img src="{{ $pr->image }}" alt="{{ $pr->name }}" style="height:28px; width:28px; border-radius:50%; object-fit:cover;" />
+                  @else
+                    <img src="https://via.placeholder.com/28x28?text=No+Img" alt="Priest" style="height:28px; width:28px; border-radius:50%; object-fit:cover;" />
+                  @endif
+                  <span>
+                    <strong>{{ \Carbon\Carbon::parse($m->start_at)->format('g:i A') }}</strong>
+                    @if($m->language) <span style="color:#777;">{{ $m->language }}</span> @endif
+                    @if($pr && $pr->name) <span style="color:#777;">with {{ $pr->name }}</span> @endif
+                  </span>
+                </li>
+              @endforeach
+            </ul>
+          @else
+            <p class="text-center" style="margin:0;">No masses scheduled for Sunday.</p>
+          @endif
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var bs = document.getElementById('btn-saturday');
+  var bu = document.getElementById('btn-sunday');
+  var ls = document.getElementById('list-saturday');
+  var lu = document.getElementById('list-sunday');
+  function show(which){
+    if (which === 'sat') { if (ls) ls.style.display = 'block'; if (lu) lu.style.display = 'none'; }
+    if (which === 'sun') { if (ls) ls.style.display = 'none'; if (lu) lu.style.display = 'block'; }
+  }
+  if (bs) bs.addEventListener('click', function(){ show('sat'); });
+  if (bu) bu.addEventListener('click', function(){ show('sun'); });
+});
+</script>
 
 @php($services = \App\Models\Service::latest()->get())
 

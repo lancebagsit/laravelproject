@@ -10,6 +10,7 @@
         <a href="/admin/announcements" class="admin-nav-item active"><i class="fa fa-bullhorn"></i><span>Announcements</span></a>
         <a href="/admin/priest" class="admin-nav-item"><i class="fa fa-user"></i><span>Priests</span></a>
         <a href="/admin/gallery" class="admin-nav-item"><i class="fa fa-picture-o"></i><span>Gallery</span></a>
+        <a href="/admin/schedule" class="admin-nav-item"><i class="fa fa-calendar"></i><span>Parish Schedule</span></a>
         <a href="/admin/services" class="admin-nav-item"><i class="fa fa-cogs"></i><span>Services</span></a>
         <a href="/admin/donations" class="admin-nav-item"><i class="fa fa-gift"></i><span>Donations</span></a>
         <a href="/admin/inquiries" class="admin-nav-item"><i class="fa fa-envelope"></i><span>Inquiries</span></a>
@@ -21,6 +22,7 @@
         <div class="admin-title">Announcements</div>
         <div class="admin-actions">
           <a href="/admin" class="btn btn-login-secondary">← Back to Dashboard</a>
+          <a href="/admin/announcements/archive" class="btn btn-login-secondary">View Archive</a>
           <div class="admin-user">{{ session('admin_name') }}</div>
         </div>
       </div>
@@ -56,14 +58,30 @@
                 <p>{{ $item->content }}</p>
                 <form method="POST" action="/admin/announcements/{{ $item->id }}" style="margin-top:10px;">
                   @csrf
-                  <input type="hidden" name="title" value="{{ $item->title }}" />
-                  <input type="hidden" name="content" value="{{ $item->content }}" />
-                  <button type="submit" class="btn btn-primary">Quick Update</button>
+                  <div class="form-group"><label>Title</label><input type="text" name="title" class="form-control" value="{{ $item->title }}" required minlength="5" /></div>
+                  <div class="form-group"><label>Content</label><textarea name="content" class="form-control" rows="4" required minlength="5">{{ $item->content }}</textarea></div>
+                  <button type="submit" class="btn btn-primary">Update</button>
                 </form>
-                <form method="POST" action="/admin/announcements/{{ $item->id }}/delete" style="display:inline-block; margin-left:10px;">
+                <button type="button" class="btn btn-danger" style="margin-left:10px;" data-toggle="modal" data-target="#del-ann-{{ $item->id }}">Delete</button>
+                <form method="POST" action="/admin/announcements/{{ $item->id }}/archive" style="display:inline-block; margin-left:10px;">
                   @csrf
-                  <button type="submit" class="btn btn-danger">Delete</button>
+                  <button type="submit" class="btn btn-login-secondary">Archive</button>
                 </form>
+                <div class="modal fade" id="del-ann-{{ $item->id }}" tabindex="-1" role="dialog">
+                  <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header"><h4 class="modal-title">Confirm Delete</h4></div>
+                      <div class="modal-body"><p>Are you sure you want to delete this announcement?</p></div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-login-secondary" data-dismiss="modal">Cancel</button>
+                        <form method="POST" action="/admin/announcements/{{ $item->id }}/delete" style="display:inline;">
+                          @csrf
+                          <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           @empty

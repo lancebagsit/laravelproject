@@ -30,6 +30,7 @@ class DonationController extends Controller
             'proof_of_payment_base64' => 'required|string',
         ]);
         $validated['status'] = $validated['status'] ?? 'pending';
+        if ($request->user()) { $validated['user_id'] = $request->user()->id; }
         $donation = Donation::create($validated);
         return response()->json($donation, 201);
     }

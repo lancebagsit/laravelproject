@@ -16,6 +16,7 @@
         <a href="/admin/announcements" class="admin-nav-item"><i class="fa fa-bullhorn"></i><span>Announcements</span></a>
         <a href="/admin/priest" class="admin-nav-item"><i class="fa fa-user"></i><span>Priests</span></a>
         <a href="/admin/gallery" class="admin-nav-item"><i class="fa fa-picture-o"></i><span>Gallery</span></a>
+        <a href="/admin/schedule" class="admin-nav-item"><i class="fa fa-calendar"></i><span>Parish Schedule</span></a>
         <a href="/admin/services" class="admin-nav-item"><i class="fa fa-cogs"></i><span>Services</span></a>
         <a href="/admin/donations" class="admin-nav-item"><i class="fa fa-gift"></i><span>Donations</span></a>
         <a href="/admin/inquiries" class="admin-nav-item"><i class="fa fa-envelope"></i><span>Inquiries</span></a>
@@ -26,9 +27,6 @@
       <div class="admin-topbar">
         <div class="admin-title">Home</div>
         <div class="admin-actions">
-          <form class="admin-search" action="/admin/search" method="GET" style="display:inline-block; width:300px;">
-            <input type="text" name="q" class="form-control" placeholder="Search anything" />
-          </form>
           <div class="admin-user">{{ session('admin_name') }}</div>
         </div>
       </div>
@@ -54,6 +52,14 @@
           <div class="stat-label">Inquiries</div>
           <div class="stat-value">{{ $inqCount }}</div>
         </div>
+      </div>
+
+      <div class="admin-card" data-animate="animate__fadeInUp">
+        <div class="admin-card-header">
+          <h4>Homepage Preview</h4>
+          <a href="/" class="btn btn-login-secondary">Open Full Site</a>
+        </div>
+        <iframe src="/" style="width:100%; height:720px; border:1px solid #eaeaea; border-radius:12px;"></iframe>
       </div>
 
       <div class="admin-grid">

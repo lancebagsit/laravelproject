@@ -135,6 +135,10 @@ hr {
   padding: 0 15px;
 }
 
+/* Consistent page spacing */
+.content-wrapper { margin-top: 80px; margin-bottom: 60px; }
+.content-wrapper .container:not(#user-login):not(#user-register):not(#user-forgot):not(#user-reset):not(#admin-login) { width: 90%; max-width: 1200px; margin: 0 auto; padding: 0 15px; }
+
 .navbar-header {
   flex-shrink: 0;
   display: flex;
@@ -2102,7 +2106,9 @@ label {
   padding-top: 90px;
   padding-bottom: 120px;
 }
-.login-wrapper { align-items: stretch; }
+.login-wrapper { display: flex; align-items: center; }
+.login-wrapper .col-md-6 { display: flex; }
+.login-hero, .login-card { flex: 1 1 auto; }
 .login-hero {
   position: relative;
   min-height: 520px;
@@ -2204,6 +2210,11 @@ label {
 }
 .social-btn:hover { border-color: #2e8b57; box-shadow: 0 6px 14px rgba(46,139,87,0.25); transform: translateY(-1px); }
 .login-register { margin-top: 20px; }
+.toggle-password { cursor: pointer; }
+.password-criteria { list-style: none; margin: 8px 0 0; padding: 0; font-size: 12px; color: #777; }
+.password-criteria li { padding: 2px 0; }
+.password-criteria li.met { color: #2e8b57; font-weight: 600; }
+/* login page uses global content-wrapper margins */
 @media (max-width: 992px) {
   .login-hero { min-height: 260px; margin-bottom: 16px; }
   .login-card { min-height: auto; padding: 22px; }
@@ -2295,9 +2306,41 @@ label {
   .nav-burger { display: none; }
 }
 
+/* Authenticated minimal navbar */
+.nav-welcome { font-weight: 600; color: #333; padding: 15px 12px; display: inline-block; }
+/* Container for welcome + burger */
+.user-menu-container { position: relative; display: inline-flex; align-items: center; gap: 8px; }
+.role-badge { margin-left: 8px; display: inline-block; padding: 2px 8px; font-size: 11px; border-radius: 9999px; font-weight: 700; vertical-align: middle; }
+.role-badge.role-admin { background: #eaf6ef; color: #2e8b57; border: 1px solid rgba(46,139,87,0.3); }
+.role-badge.role-user { background: #f2f2f2; color: #555; border: 1px solid rgba(0,0,0,0.12); }
+
+/* User dropdown menu */
+#userMenuPanel.user-menu-panel { position: absolute; right: 0; top: calc(100% + 8px); width: 260px; background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; box-shadow: 0 10px 24px rgba(0,0,0,0.14); padding: 10px; transform-origin: top right; opacity: 0; pointer-events: none; transform: scale(0.96) translateY(-8px); transition: transform .18s ease, opacity .18s ease; z-index: 20002; }
+#userMenuPanel.user-menu-panel.open { opacity: 1; pointer-events: auto; transform: scale(1) translateY(0); }
+#userMenuPanel .panel-header { font-weight: 700; margin: 6px 8px 8px; }
+#userMenuPanel .nav { display: flex; flex-direction: column; gap: 6px; }
+#userMenuPanel .nav>li>a { padding: 8px 10px; display: block; color: #333; border-radius: 8px; }
+#userMenuPanel .nav>li>a:hover { background: #f7f7f7; }
+
+/* User burger */
+.nav-burger.user-menu { display: inline-flex !important; position: relative; width: 28px; height: 28px; border-radius: 8px; border: 1.5px solid rgba(46,139,87,0.9); background: #fff; align-items: center; justify-content: center; gap: 3px; }
+.nav-burger.user-menu .bar { width: 16px; height: 2px; background: #2e8b57; display: block; transition: transform .18s ease, opacity .18s ease; }
+.nav-burger.user-menu.active .bar:nth-child(1) { transform: translateY(4px) rotate(45deg); }
+.nav-burger.user-menu.active .bar:nth-child(2) { opacity: 0; }
+.nav-burger.user-menu.active .bar:nth-child(3) { transform: translateY(-4px) rotate(-45deg); }
+
 /* Mobile type scaling and layout fixes */
 @media (max-width: 576px) {
-  .content-wrapper { margin-top: 64px !important; }
+  .content-wrapper { margin-top: 64px !important; margin-bottom: 48px; }
+  .content-wrapper .container:not(#user-login):not(#user-register):not(#user-forgot):not(#user-reset):not(#admin-login) { width: 94%; max-width: none; padding: 0 10px; }
+}
+
+/* Auth pages margin reinforcement */
+.content-wrapper.auth-page { margin-bottom: 16px !important; }
+#user-login, #user-register, #user-forgot, #user-reset { margin-top: 96px; margin-bottom: 16px; min-height: calc(100vh - 140px); }
+
+/* Auth containers wider for balance */
+#user-login, #user-register { width: 94%; max-width: 1280px; margin: 0 auto; padding: 0 10px; }
   #menu .navbar-brand { font-size: 12px; max-width: 88%; white-space: nowrap; overflow: visible; text-overflow: clip; margin-right: 0; display: block; text-align: center; }
   #header .intro { min-height: calc(100vh - 56px); }
   header .intro-text { padding-top: 120px; padding-bottom: 60px; }

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Admin;
+use App\Models\User;
 
 class AdminAuthController extends Controller
 {
@@ -23,13 +23,14 @@ class AdminAuthController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:50|unique:admins,email',
+            'email' => 'required|email|max:50|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
         ]);
-        $admin = Admin::create([
+        $admin = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'role_id' => 2,
         ]);
         $request->session()->put('admin_id', $admin->id);
         $request->session()->put('admin_name', $admin->name);
@@ -57,7 +58,7 @@ class AdminAuthController extends Controller
             'password' => 'required|string|max:100',
         ]);
 
-        $admin = Admin::where('email', $validated['email'])->first();
+        $admin = User::where('email', $validated['email'])->where('role_id', 2)->first();
         if (!$admin || !Hash::check($validated['password'], $admin->password)) {
             return redirect('/admin/login')->withErrors(['Invalid credentials']);
         }

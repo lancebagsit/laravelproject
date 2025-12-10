@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Announcement;
 use App\Models\Priest;
 use App\Models\GalleryItem;
@@ -16,9 +17,15 @@ class AdminController extends Controller
 {
     private function requireAuth(Request $request)
     {
-        if (!$request->session()->get('admin_id')) {
-            abort(302, '', ['Location' => '/admin/login']);
+        if ($request->session()->get('admin_id')) {
+            return;
         }
+        if (Auth::check() && (int) (Auth::user()->role_id ?? 1) === 2) {
+            $request->session()->put('admin_id', Auth::id());
+            $request->session()->put('admin_name', Auth::user()->name);
+            return;
+        }
+        abort(302, '', ['Location' => '/']);
     }
 
     public function dashboard(Request $request)
@@ -30,7 +37,7 @@ class AdminController extends Controller
     public function announcementsIndex(Request $request)
     {
         $this->requireAuth($request);
-        $items = Announcement::latest()->get();
+        $items = Announcement::where('archived', false)->latest()->get();
         return view('admin.announcements.index', compact('items'));
     }
 
@@ -65,10 +72,33 @@ class AdminController extends Controller
         return redirect('/admin/announcements')->with('status', 'Announcement deleted');
     }
 
+    public function announcementsArchivePage(Request $request)
+    {
+        $this->requireAuth($request);
+        $items = Announcement::where('archived', true)->latest()->get();
+        return view('admin.announcements.archive', compact('items'));
+    }
+
+    public function announcementsArchive(Request $request, string $id)
+    {
+        $this->requireAuth($request);
+        $item = Announcement::findOrFail($id);
+        $item->update(['archived' => true]);
+        return redirect('/admin/announcements')->with('status', 'Announcement archived');
+    }
+
+    public function announcementsUnarchive(Request $request, string $id)
+    {
+        $this->requireAuth($request);
+        $item = Announcement::findOrFail($id);
+        $item->update(['archived' => false]);
+        return redirect('/admin/announcements/archive')->with('status', 'Announcement unarchived');
+    }
+
     public function priestsIndex(Request $request)
     {
         $this->requireAuth($request);
-        $items = Priest::latest()->get();
+        $items = Priest::where('archived', false)->latest()->get();
         return view('admin.priests.index', compact('items'));
     }
 
@@ -144,10 +174,33 @@ class AdminController extends Controller
         return redirect('/admin/priest')->with('status', 'Priest deleted');
     }
 
+    public function priestsArchivePage(Request $request)
+    {
+        $this->requireAuth($request);
+        $items = Priest::where('archived', true)->latest()->get();
+        return view('admin.priests.archive', compact('items'));
+    }
+
+    public function priestsArchive(Request $request, string $id)
+    {
+        $this->requireAuth($request);
+        $item = Priest::findOrFail($id);
+        $item->update(['archived' => true]);
+        return redirect('/admin/priest')->with('status', 'Priest archived');
+    }
+
+    public function priestsUnarchive(Request $request, string $id)
+    {
+        $this->requireAuth($request);
+        $item = Priest::findOrFail($id);
+        $item->update(['archived' => false]);
+        return redirect('/admin/priest/archive')->with('status', 'Priest unarchived');
+    }
+
     public function galleryIndex(Request $request)
     {
         $this->requireAuth($request);
-        $items = GalleryItem::latest()->get();
+        $items = GalleryItem::where('archived', false)->latest()->get();
         return view('admin.gallery.index', compact('items'));
     }
 
@@ -196,6 +249,29 @@ class AdminController extends Controller
         $item = GalleryItem::findOrFail($id);
         $item->delete();
         return redirect('/admin/gallery')->with('status', 'Image deleted');
+    }
+
+    public function galleryArchivePage(Request $request)
+    {
+        $this->requireAuth($request);
+        $items = GalleryItem::where('archived', true)->latest()->get();
+        return view('admin.gallery.archive', compact('items'));
+    }
+
+    public function galleryArchive(Request $request, string $id)
+    {
+        $this->requireAuth($request);
+        $item = GalleryItem::findOrFail($id);
+        $item->update(['archived' => true]);
+        return redirect('/admin/gallery')->with('status', 'Image archived');
+    }
+
+    public function galleryUnarchive(Request $request, string $id)
+    {
+        $this->requireAuth($request);
+        $item = GalleryItem::findOrFail($id);
+        $item->update(['archived' => false]);
+        return redirect('/admin/gallery/archive')->with('status', 'Image unarchived');
     }
 
     public function donationsIndex(Request $request)
@@ -253,7 +329,7 @@ class AdminController extends Controller
     public function servicesIndex(Request $request)
     {
         $this->requireAuth($request);
-        $items = Service::latest()->get();
+        $items = Service::where('archived', false)->latest()->get();
         return view('admin.services.index', compact('items'));
     }
 
@@ -310,6 +386,29 @@ class AdminController extends Controller
         return redirect('/admin/services')->with('status', 'Service deleted');
     }
 
+    public function servicesArchivePage(Request $request)
+    {
+        $this->requireAuth($request);
+        $items = Service::where('archived', true)->latest()->get();
+        return view('admin.services.archive', compact('items'));
+    }
+
+    public function servicesArchive(Request $request, string $id)
+    {
+        $this->requireAuth($request);
+        $item = Service::findOrFail($id);
+        $item->update(['archived' => true]);
+        return redirect('/admin/services')->with('status', 'Service archived');
+    }
+
+    public function servicesUnarchive(Request $request, string $id)
+    {
+        $this->requireAuth($request);
+        $item = Service::findOrFail($id);
+        $item->update(['archived' => false]);
+        return redirect('/admin/services/archive')->with('status', 'Service unarchived');
+    }
+
     public function donationsArchivePage(Request $request)
     {
         $this->requireAuth($request);
@@ -364,5 +463,121 @@ class AdminController extends Controller
             ->orWhere('message', 'like', "%$q%")
             ->latest()->take(20)->get();
         return view('admin.search', compact('q','announcements','priests','gallery','donations','inquiries'));
+    }
+
+    public function scheduleIndex(Request $request)
+    {
+        $this->requireAuth($request);
+        $date = $request->query('date');
+        if (!$date) {
+            $today = now();
+            $nextSat = $today->copy()->next(\Carbon\Carbon::SATURDAY);
+            $nextSun = $today->copy()->next(\Carbon\Carbon::SUNDAY);
+            $date = $nextSat->lt($nextSun) ? $nextSat->toDateString() : $nextSun->toDateString();
+        }
+        $month = (string) $request->query('month');
+        $base = $month ? \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth() : now()->startOfMonth();
+        $start = $base->copy()->startOfMonth();
+        $end = $base->copy()->endOfMonth();
+        $priests = Priest::orderBy('name')->get();
+        $items = Schedule::with('priest')->whereDate('start_at', $date)->orderBy('start_at')->get();
+        $monthItems = Schedule::with('priest')->whereNotNull('start_at')->whereBetween('start_at', [$start, $end])->orderBy('start_at')->get();
+        return view('admin.schedule.index', [
+            'date' => $date,
+            'priests' => $priests,
+            'items' => $items,
+            'month' => $base->format('Y-m'),
+            'monthItems' => $monthItems,
+        ]);
+    }
+
+    public function scheduleStore(Request $request)
+    {
+        $this->requireAuth($request);
+        $date = $request->input('date');
+        $slots = $request->input('slots');
+        if (is_string($slots)) {
+            $slots = json_decode($slots, true) ?: [];
+        }
+        $request->merge(['slots' => $slots]);
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'slots' => 'required|array|min:1',
+            'slots.*.time' => 'required|string',
+            'slots.*.priest_id' => 'required|exists:priests,id',
+        ]);
+        $date = \Carbon\Carbon::parse($validated['date']);
+        if (!in_array($date->dayOfWeek, [\Carbon\Carbon::SATURDAY, \Carbon\Carbon::SUNDAY])) {
+            return redirect('/admin/schedule?date='.$date->toDateString())->withErrors(['date' => 'Date must be Saturday or Sunday']);
+        }
+        $submittedTimes = [];
+        foreach ($validated['slots'] as $slot) {
+            $t = \Carbon\Carbon::parse($validated['date'].' '.$slot['time']);
+            $hour = (int)$t->format('H');
+            $min = (int)$t->format('i');
+            $inMorning = ($hour >= 7 && ($hour < 10 || ($hour === 10 && $min === 0)));
+            $inEvening = ($hour >= 17 && ($hour < 20 || ($hour === 20 && $min === 0)));
+            if (!($inMorning || $inEvening)) {
+                return redirect('/admin/schedule?date='.$date->toDateString())->withErrors(['time' => 'Times must be between 7:00–10:00 or 17:00–20:00']);
+            }
+            $timeKey = $t->format('H:i');
+            if (in_array($timeKey, $submittedTimes, true)) {
+                return redirect('/admin/schedule?date='.$date->toDateString())->withErrors(['time' => 'Duplicate time in submission: '.$t->format('g:i A')]);
+            }
+            $submittedTimes[] = $timeKey;
+            $exists = Schedule::whereDate('start_at', $date->toDateString())
+                ->whereTime('start_at', $t->format('H:i:s'))
+                ->exists();
+            if ($exists) {
+                return redirect('/admin/schedule?date='.$date->toDateString())->withErrors(['time' => 'There is already a mass at '.$t->format('g:i A').' on this date']);
+            }
+            Schedule::create([
+                'time' => $t->format('g:i A'),
+                'language' => 'Tagalog',
+                'start_at' => $t,
+                'priest_id' => $slot['priest_id'],
+            ]);
+        }
+        return redirect('/admin/schedule?date='.$date->toDateString())->with('status', 'Mass schedule saved');
+    }
+
+    public function scheduleUpdate(Request $request, string $id)
+    {
+        $this->requireAuth($request);
+        $item = Schedule::findOrFail($id);
+        $validated = $request->validate([
+            'time' => 'required|string',
+            'priest_id' => 'required|exists:priests,id',
+        ]);
+        $t = \Carbon\Carbon::parse($item->start_at->toDateString().' '.$validated['time']);
+        $hour = (int)$t->format('H');
+        $min = (int)$t->format('i');
+        $inMorning = ($hour >= 7 && ($hour < 10 || ($hour === 10 && $min === 0)));
+        $inEvening = ($hour >= 17 && ($hour < 20 || ($hour === 20 && $min === 0)));
+        if (!($inMorning || $inEvening)) {
+            return back()->withErrors(['time' => 'Times must be between 7:00–10:00 or 17:00–20:00']);
+        }
+        $conflict = Schedule::whereDate('start_at', $item->start_at->toDateString())
+            ->whereTime('start_at', $t->format('H:i:s'))
+            ->where('id', '!=', $item->id)
+            ->exists();
+        if ($conflict) {
+            return back()->withErrors(['time' => 'Another mass is already scheduled at '.$t->format('g:i A').' for this date']);
+        }
+        $item->update([
+            'time' => $t->format('g:i A'),
+            'start_at' => $t,
+            'priest_id' => $validated['priest_id'],
+        ]);
+        return back()->with('status', 'Schedule updated');
+    }
+
+    public function scheduleDestroy(Request $request, string $id)
+    {
+        $this->requireAuth($request);
+        $item = Schedule::findOrFail($id);
+        $date = optional($item->start_at)->toDateString();
+        $item->delete();
+        return redirect('/admin/schedule'.($date ? ('?date='.$date) : ''))->with('status', 'Schedule deleted');
     }
 }
