@@ -40,6 +40,13 @@
               <input type="password" class="form-control" id="password" name="password" placeholder="Password" required minlength="8" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$" title="At least 8 characters, include 1 uppercase, 1 lowercase, 1 number, and 1 special character." />
             </div>
           </div>
+          <div class="form-group">
+            <label for="password_confirmation" class="sr-only">Confirm Password</label>
+            <div class="input-group login-input">
+              <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+              <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="Confirm Password" required minlength="8" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$" />
+            </div>
+          </div>
           <div class="text-right"><a href="/admin/forgot-password" class="btn-login-secondary">Forgot your password?</a></div>
           <button type="submit" class="btn btn-login-primary btn-block">Register</button>
           <div class="text-center login-register">
@@ -55,4 +62,12 @@
   <div class="text-center" style="margin-top:12px;">
     <p>Use a valid email and strong password.</p>
   </div>
+  <script>
+  document.addEventListener('DOMContentLoaded', function(){
+    var p = document.getElementById('password');
+    var pc = document.getElementById('password_confirmation');
+    function check(){ if (p && pc) { pc.setCustomValidity(p.value === pc.value ? '' : 'Passwords do not match'); } }
+    if (p && pc) { p.addEventListener('input', check); pc.addEventListener('input', check); }
+  });
+  </script>
 @endsection

@@ -24,7 +24,7 @@ class AdminAuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:50|unique:admins,email',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:6|confirmed',
         ]);
         $admin = Admin::create([
             'name' => $validated['name'],
