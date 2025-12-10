@@ -23,7 +23,7 @@
             <label for="name" class="sr-only">Name</label>
             <div class="input-group login-input">
               <span class="input-group-addon"><i class="fa fa-user"></i></span>
-              <input type="text" class="form-control" id="name" name="name" placeholder="Name" required />
+              <input type="text" class="form-control" id="name" name="name" placeholder="Name" required minlength="5" maxlength="100" />
             </div>
           </div>
           <div class="form-group">
@@ -37,7 +37,7 @@
             <label for="password" class="sr-only">Password</label>
             <div class="input-group login-input">
               <span class="input-group-addon"><i class="fa fa-lock"></i></span>
-              <input type="password" class="form-control" id="password" name="password" placeholder="Password" required />
+              <input type="password" class="form-control" id="password" name="password" placeholder="Password" required minlength="8" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$" title="At least 8 characters, include 1 uppercase, 1 lowercase, 1 number, and 1 special character." />
             </div>
           </div>
           <div class="text-right"><a href="/admin/forgot-password" class="btn-login-secondary">Forgot your password?</a></div>

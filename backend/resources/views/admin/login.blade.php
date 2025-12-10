@@ -23,7 +23,7 @@
             <label for="email" class="sr-only">Email</label>
             <div class="input-group login-input">
               <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
-              <input type="email" class="form-control" id="email" name="email" placeholder="Email" required maxlength="100" />
+              <input type="email" class="form-control" id="email" name="email" placeholder="Email" required maxlength="50" />
             </div>
           </div>
           <div class="form-group">
