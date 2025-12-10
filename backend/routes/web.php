@@ -47,9 +47,9 @@ Route::get('/contact', function () {
 
 Route::post('/contact', function (Request $request) {
     $validated = $request->validate([
-        'name' => 'required|string|max:255',
+        'name' => 'required|string|min:5|max:255',
         'email' => 'required|email',
-        'message' => 'required|string',
+        'message' => 'required|string|min:5',
     ]);
     ContactSubmission::create($validated);
     return redirect('/#contact')->with('status', 'Message sent successfully');
@@ -57,10 +57,10 @@ Route::post('/contact', function (Request $request) {
 
 Route::post('/donate', function (Request $request) {
     $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'contact_number' => 'nullable|string|max:255',
-        'mode_of_payment' => 'nullable|string|max:255',
-        'reference_number' => 'nullable|string|max:255',
+        'name' => 'required|string|min:5|max:100',
+        'contact_number' => ['nullable','regex:/^\d{1,10}$/'],
+        'mode_of_payment' => 'nullable|string|min:5|max:100',
+        'reference_number' => ['nullable','regex:/^\d{1,20}$/'],
         'donation_amount' => 'nullable|numeric',
     ]);
     \App\Models\Donation::create($validated);
@@ -103,7 +103,19 @@ Route::prefix('admin')->group(function () {
 
     Route::get('/donations', [AdminController::class, 'donationsIndex']);
     Route::post('/donations/qr', [AdminController::class, 'donationsUpdateQR']);
+    Route::get('/donations/archive', [AdminController::class, 'donationsArchivePage']);
+    Route::post('/donations/{id}/archive', [AdminController::class, 'donationsArchive']);
+    Route::post('/donations/{id}/unarchive', [AdminController::class, 'donationsUnarchive']);
     Route::get('/inquiries', [AdminController::class, 'inquiriesIndex']);
+    Route::get('/inquiries/archive', [AdminController::class, 'inquiriesArchivePage']);
+    Route::post('/inquiries/{id}/archive', [AdminController::class, 'inquiriesArchive']);
+    Route::post('/inquiries/{id}/unarchive', [AdminController::class, 'inquiriesUnarchive']);
+    Route::get('/search', [AdminController::class, 'search']);
+
+    Route::get('/services', [AdminController::class, 'servicesIndex']);
+    Route::post('/services', [AdminController::class, 'servicesStore']);
+    Route::post('/services/{id}', [AdminController::class, 'servicesUpdate']);
+    Route::post('/services/{id}/delete', [AdminController::class, 'servicesDestroy']);
 });
 
 

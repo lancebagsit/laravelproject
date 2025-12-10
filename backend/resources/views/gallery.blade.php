@@ -11,7 +11,7 @@
       @forelse($items as $item)
         <div class="col-sm-6 col-md-3 col-lg-3 gallery-item" data-animate="animate__fadeInUp">
           <div class="thumbnail">
-            <img src="/image/square?src={{ $item->url }}&size=350" alt="{{ $item->title }}">
+            <img src="{{ $item->url }}" alt="{{ $item->title }}" style="width:100%; height:250px; object-fit:cover;" loading="lazy">
             <div class="caption"><h4>{{ $item->title }}</h4></div>
           </div>
         </div>

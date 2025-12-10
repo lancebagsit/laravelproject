@@ -10,6 +10,7 @@
         <a href="/admin/announcements" class="admin-nav-item"><i class="fa fa-bullhorn"></i><span>Announcements</span></a>
         <a href="/admin/priest" class="admin-nav-item"><i class="fa fa-user"></i><span>Priests</span></a>
         <a href="/admin/gallery" class="admin-nav-item active"><i class="fa fa-picture-o"></i><span>Gallery</span></a>
+        <a href="/admin/services" class="admin-nav-item"><i class="fa fa-cogs"></i><span>Services</span></a>
         <a href="/admin/donations" class="admin-nav-item"><i class="fa fa-gift"></i><span>Donations</span></a>
         <a href="/admin/inquiries" class="admin-nav-item"><i class="fa fa-envelope"></i><span>Inquiries</span></a>
       </nav>
@@ -31,15 +32,8 @@
         <div class="panel-body">
           <form method="POST" action="/admin/gallery" enctype="multipart/form-data">
             @csrf
-            <div class="form-group"><label>Title</label><input type="text" name="title" class="form-control" required /></div>
-            <div class="form-group">
-              <div class="btn-group" role="group" aria-label="Select Source" style="margin-bottom:8px;">
-                <button type="button" class="btn btn-login-secondary" id="srcUrlBtn">Use Image URL</button>
-                <button type="button" class="btn btn-login-secondary" id="srcFileBtn">Upload File</button>
-              </div>
-              <div id="srcUrlField" style="margin-top:6px;"><label>Image URL</label><input type="url" name="url" class="form-control" /></div>
-              <div id="srcFileField" style="margin-top:6px; display:none;"><label>Image File</label><input type="file" name="image_file" class="form-control" accept="image/*" /></div>
-            </div>
+            <div class="form-group"><label>Title</label><input type="text" name="title" class="form-control" required minlength="5" /></div>
+            <div class="form-group"><label>Image File</label><input type="file" name="image_file" class="form-control" accept="image/*" required /></div>
             <button type="submit" class="btn btn-custom btn-lg">Save</button>
           </form>
         </div>
@@ -56,9 +50,8 @@
                 <img src="{{ $item->url }}" alt="{{ $item->title }}" class="img-responsive" style="max-height:150px;" />
                 <form method="POST" action="/admin/gallery/{{ $item->id }}" style="margin-top:10px;" enctype="multipart/form-data">
                   @csrf
-                  <div class="form-group"><label>Title</label><input type="text" name="title" class="form-control" value="{{ $item->title }}" required /></div>
-                  <div class="form-group"><label>Image URL</label><input type="url" name="url" class="form-control" value="{{ $item->url }}" /></div>
-                  <div class="form-group"><label>Replace Image (optional)</label><input type="file" name="image_file" class="form-control" accept="image/*" /></div>
+                  <div class="form-group"><label>Title</label><input type="text" name="title" class="form-control" value="{{ $item->title }}" required minlength="5" /></div>
+                  <div class="form-group"><label>Replace Image</label><input type="file" name="image_file" class="form-control" accept="image/*" required /></div>
                   <button type="submit" class="btn btn-primary">Quick Update</button>
                 </form>
                 <form method="POST" action="/admin/gallery/{{ $item->id }}/delete" style="display:inline-block; margin-left:10px;">
@@ -73,18 +66,7 @@
       </div>
     </div>
   </div>
-      <script>
-      (function(){
-        var bUrl = document.getElementById('srcUrlBtn');
-        var bFile = document.getElementById('srcFileBtn');
-        var fUrl = document.getElementById('srcUrlField');
-        var fFile = document.getElementById('srcFileField');
-        function showUrl(){ if(fUrl) fUrl.style.display=''; if(fFile) fFile.style.display='none'; }
-        function showFile(){ if(fUrl) fUrl.style.display='none'; if(fFile) fFile.style.display=''; }
-        if (bUrl) bUrl.addEventListener('click', showUrl);
-        if (bFile) bFile.addEventListener('click', showFile);
-      })();
-      </script>
+      
       </div>
     </main>
   </div>

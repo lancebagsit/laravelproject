@@ -10,6 +10,7 @@
         <a href="/admin/announcements" class="admin-nav-item"><i class="fa fa-bullhorn"></i><span>Announcements</span></a>
         <a href="/admin/priest" class="admin-nav-item"><i class="fa fa-user"></i><span>Priests</span></a>
         <a href="/admin/gallery" class="admin-nav-item"><i class="fa fa-picture-o"></i><span>Gallery</span></a>
+        <a href="/admin/services" class="admin-nav-item"><i class="fa fa-cogs"></i><span>Services</span></a>
         <a href="/admin/donations" class="admin-nav-item active"><i class="fa fa-gift"></i><span>Donations</span></a>
         <a href="/admin/inquiries" class="admin-nav-item"><i class="fa fa-envelope"></i><span>Inquiries</span></a>
       </nav>
@@ -44,7 +45,7 @@
         <div class="panel-body">
           <div class="table-responsive">
             <table class="table table-striped">
-          <thead><tr><th>Name</th><th>Amount</th><th>Reference</th><th>Status</th></tr></thead>
+          <thead><tr><th>Name</th><th>Amount</th><th>Reference</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>
           @forelse($items as $d)
             <tr>
@@ -52,15 +53,51 @@
               <td>{{ $d->donation_amount ?? '-' }}</td>
               <td>{{ $d->reference_number ?? '-' }}</td>
               <td>{{ $d->status ?? 'pending' }}</td>
+              <td>
+                <button class="btn btn-primary" data-toggle="modal" data-target="#donationModal{{ $d->id }}">View</button>
+                @if(empty($d->archived_at))
+                <form method="POST" action="/admin/donations/{{ $d->id }}/archive" style="display:inline-block; margin-left:6px;">
+                  @csrf
+                  <button type="submit" class="btn btn-warning">Archive</button>
+                </form>
+                @else
+                <form method="POST" action="/admin/donations/{{ $d->id }}/unarchive" style="display:inline-block; margin-left:6px;">
+                  @csrf
+                  <button type="submit" class="btn btn-success">Unarchive</button>
+                </form>
+                @endif
+              </td>
             </tr>
           @empty
-            <tr><td colspan="4">No donations yet.</td></tr>
+            <tr><td colspan="5">No donations yet.</td></tr>
           @endforelse
           </tbody>
         </table>
+          </div>
+        </div>
       </div>
-    </div>
-      </div>
+      @foreach($items as $d)
+        <div class="modal fade" id="donationModal{{ $d->id }}" tabindex="-1" role="dialog">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title">Donation Details</h4></div>
+              <div class="modal-body">
+                <p><strong>Name:</strong> {{ $d->name }}</p>
+                <p><strong>Contact:</strong> {{ $d->contact_number ?? '-' }}</p>
+                <p><strong>Mode of Payment:</strong> {{ $d->mode_of_payment ?? '-' }}</p>
+                <p><strong>Reference Number:</strong> {{ $d->reference_number ?? '-' }}</p>
+                <p><strong>Amount:</strong> {{ $d->donation_amount ?? '-' }}</p>
+                <p><strong>Status:</strong> {{ $d->status ?? 'pending' }}</p>
+                @if(!empty($d->proof_of_payment_base64))
+                  <div><strong>Proof of Payment:</strong><br><img src="data:image/png;base64,{{ $d->proof_of_payment_base64 }}" class="img-responsive" style="max-height:240px;" /></div>
+                @endif
+              </div>
+              <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div>
+            </div>
+          </div>
+        </div>
+      @endforeach
+      <div class="text-right" style="margin-top:8px;"><a href="/admin/donations/archive" class="btn btn-login-secondary">View Archive →</a></div>
     </main>
   </div>
 </div>

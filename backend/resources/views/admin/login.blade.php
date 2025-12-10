@@ -23,14 +23,14 @@
             <label for="email" class="sr-only">Email</label>
             <div class="input-group login-input">
               <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
-              <input type="email" class="form-control" id="email" name="email" placeholder="Email" required />
+              <input type="email" class="form-control" id="email" name="email" placeholder="Email" required maxlength="100" />
             </div>
           </div>
           <div class="form-group">
             <label for="password" class="sr-only">Password</label>
             <div class="input-group login-input">
               <span class="input-group-addon"><i class="fa fa-lock"></i></span>
-              <input type="password" class="form-control" id="password" name="password" placeholder="Password" required />
+              <input type="password" class="form-control" id="password" name="password" placeholder="Password" required maxlength="100" />
             </div>
           </div>
           <div class="text-right"><a href="/admin/forgot-password" class="btn-login-secondary">Forgot your password?</a></div>

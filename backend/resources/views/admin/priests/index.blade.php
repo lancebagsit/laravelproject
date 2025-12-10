@@ -10,6 +10,7 @@
         <a href="/admin/announcements" class="admin-nav-item"><i class="fa fa-bullhorn"></i><span>Announcements</span></a>
         <a href="/admin/priest" class="admin-nav-item active"><i class="fa fa-user"></i><span>Priests</span></a>
         <a href="/admin/gallery" class="admin-nav-item"><i class="fa fa-picture-o"></i><span>Gallery</span></a>
+        <a href="/admin/services" class="admin-nav-item"><i class="fa fa-cogs"></i><span>Services</span></a>
         <a href="/admin/donations" class="admin-nav-item"><i class="fa fa-gift"></i><span>Donations</span></a>
         <a href="/admin/inquiries" class="admin-nav-item"><i class="fa fa-envelope"></i><span>Inquiries</span></a>
       </nav>
@@ -29,11 +30,17 @@
       <div class="panel panel-default">
         <div class="panel-heading">Create / Edit</div>
         <div class="panel-body">
-          <form method="POST" action="/admin/priest">
+          <form method="POST" action="/admin/priest" enctype="multipart/form-data">
             @csrf
-            <div class="form-group"><label>Name</label><input type="text" name="name" class="form-control" required /></div>
-            <div class="form-group"><label>Image URL</label><input type="text" name="image" class="form-control" /></div>
-            <div class="form-group"><label>Description</label><textarea name="description" class="form-control" rows="4"></textarea></div>
+            <div class="form-group"><label>Name</label><input type="text" name="name" class="form-control" required minlength="5" /></div>
+            <div class="form-group"><label>Image File</label><input type="file" name="image_file" class="form-control" accept="image/*" /></div>
+            <div class="form-group"><label>Mass Time</label><input type="time" name="mass_time" class="form-control" required /></div>
+            <div class="form-group"><label>Role</label>
+              <select name="description" class="form-control" required>
+                <option value="Parish Priest">Parish Priest</option>
+                <option value="Assistant Priest">Assistant Priest</option>
+              </select>
+            </div>
             <button type="submit" class="btn btn-custom btn-lg">Save</button>
           </form>
         </div>
@@ -51,11 +58,12 @@
                   <img src="{{ $item->image }}" alt="{{ $item->name }}" class="img-responsive" style="max-height:150px;" />
                 @endif
                 <p>{{ $item->description }}</p>
-                <form method="POST" action="/admin/priest/{{ $item->id }}" style="margin-top:10px;">
+                <form method="POST" action="/admin/priest/{{ $item->id }}" style="margin-top:10px;" enctype="multipart/form-data">
                   @csrf
                   <input type="hidden" name="name" value="{{ $item->name }}" />
                   <input type="hidden" name="image" value="{{ $item->image }}" />
                   <input type="hidden" name="description" value="{{ $item->description }}" />
+                  <div class="form-group"><label>Replace Image (optional)</label><input type="file" name="image_file" class="form-control" accept="image/*" /></div>
                   <button type="submit" class="btn btn-primary">Quick Update</button>
                 </form>
                 <form method="POST" action="/admin/priest/{{ $item->id }}/delete" style="display:inline-block; margin-left:10px;">

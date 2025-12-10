@@ -10,6 +10,7 @@
         <a href="/admin/announcements" class="admin-nav-item active"><i class="fa fa-bullhorn"></i><span>Announcements</span></a>
         <a href="/admin/priest" class="admin-nav-item"><i class="fa fa-user"></i><span>Priests</span></a>
         <a href="/admin/gallery" class="admin-nav-item"><i class="fa fa-picture-o"></i><span>Gallery</span></a>
+        <a href="/admin/services" class="admin-nav-item"><i class="fa fa-cogs"></i><span>Services</span></a>
         <a href="/admin/donations" class="admin-nav-item"><i class="fa fa-gift"></i><span>Donations</span></a>
         <a href="/admin/inquiries" class="admin-nav-item"><i class="fa fa-envelope"></i><span>Inquiries</span></a>
       </nav>
@@ -33,11 +34,11 @@
             @csrf
             <div class="form-group">
               <label>Title</label>
-              <input type="text" name="title" class="form-control" required />
+              <input type="text" name="title" class="form-control" required minlength="5" />
             </div>
             <div class="form-group">
               <label>Content</label>
-              <textarea name="content" class="form-control" rows="5" required></textarea>
+              <textarea name="content" class="form-control" rows="5" required minlength="5"></textarea>
             </div>
             <button type="submit" class="btn btn-custom btn-lg">Save</button>
           </form>

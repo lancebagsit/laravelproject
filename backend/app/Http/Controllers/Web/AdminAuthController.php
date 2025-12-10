@@ -23,7 +23,7 @@ class AdminAuthController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:admins,email',
+            'email' => 'required|email|max:50|unique:admins,email',
             'password' => 'required|string|min:6',
         ]);
         $admin = Admin::create([
@@ -44,7 +44,7 @@ class AdminAuthController extends Controller
     public function forgotPassword(Request $request)
     {
         $validated = $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|email|max:50',
         ]);
         // In a production app, send a reset link. Here we flash a status.
         return redirect('/admin/login')->with('status', 'If the email exists, a reset link was sent.');
@@ -53,8 +53,8 @@ class AdminAuthController extends Controller
     public function login(Request $request)
     {
         $validated = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
+            'email' => 'required|email|max:100',
+            'password' => 'required|string|max:100',
         ]);
 
         $admin = Admin::where('email', $validated['email'])->first();

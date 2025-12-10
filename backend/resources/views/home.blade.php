@@ -71,9 +71,9 @@
 
 <div id="priests" class="parish-info-container" data-animate="animate__fadeInUp animate__delay-1s">
   <div class="container">
-    <h2 class="parish-info-title">Parish Information</h2>
+    <h2 class="parish-info-title">Parish Schedule</h2>
     @php($priests = \App\Models\Priest::latest()->get())
-    @php($schedules = \App\Models\Schedule::all())
+    @php($schedules = \App\Models\Schedule::latest()->get())
     @php($rows = min($priests->count(), $schedules->count()))
     <div class="table-wrapper">
       <table class="table table-striped">
@@ -97,7 +97,7 @@
             <tr data-animate="animate__zoomIn animate__faster">
               <td style="width:80px;">
                 @if($p && $p->image)
-                  <img src="{{ $p->image }}" alt="{{ $p->name }}" class="img-responsive" style="max-height:60px; border-radius:6px;" />
+                  <img src="{{ $p->image }}" data-full="{{ $p->image }}" alt="{{ $p->name }}" class="img-responsive priest-photo" style="max-height:60px; border-radius:6px; cursor:pointer;" />
                 @elseif($p)
                   <img src="https://via.placeholder.com/60x60?text=No+Image" alt="{{ $p->name }}" class="img-responsive" style="border-radius:6px;" />
                 @endif
@@ -114,38 +114,7 @@
   </div>
 </div>
 
-@php($services = [
-  [
-    'name' => 'DSWD Workshop',
-    'text' => 'Empowering individuals and families through workshops and support services.',
-    'definition' => 'Community-based programs such as livelihood training and social welfare education.',
-    'images' => ['/img/DSWD.jpg','/img/DSWD (1).jpg','/img/DSWD (2).jpg']
-  ],
-  [
-    'name' => 'Pan De San Jose',
-    'text' => 'Parish-led livelihood initiative supporting local families.',
-    'definition' => 'Community effort to build skills and provide sustainable income.',
-    'images' => ['/img/pan-de-san-jose.jpg','/img/pan-de-san-jose(1).JPG','/img/pan-de-san-jose(2).jpg']
-  ],
-  [
-    'name' => 'Bloodletting Activity',
-    'text' => 'Annual health outreach in partnership with local institutions.',
-    'definition' => 'Encouraging life-saving donations and wellness awareness.',
-    'images' => ['/img/BLOODLETTING.jpg','/img/BLOODLETTING(1).jpg','/img/BLOODLETTING(2).jpg']
-  ],
-  [
-    'name' => 'Paskong Puno ng Panalangin',
-    'text' => 'Seasonal program celebrating faith and community.',
-    'definition' => 'Liturgical and outreach activities during Advent and Christmas.',
-    'images' => ['/img/CHRISTMAS.JPG','/img/CHRISTMAS(1).JPG','/img/CHRISTMAS(2).JPG']
-  ],
-  [
-    'name' => 'Ambag ng Pasko',
-    'text' => 'Holiday giving drive for families in need.',
-    'definition' => 'Donations and service organized by parish ministries.',
-    'images' => ['/img/AMBAG.jpg','/img/AMBAG(1).jpg','/img/AMBAG(2).jpg']
-  ],
-])
+@php($services = \App\Models\Service::latest()->get())
 
 <div id="services" class="services-wrapper" data-animate="animate__fadeInUp animate__delay-1s">
   <div class="container">
@@ -155,18 +124,18 @@
     </div>
     <div class="services-carousel" id="servicesCarousel" data-services='@json($services)'>
       @foreach($services as $i => $svc)
+        @php($img = $svc->image1)
         <div class="svc-slide" data-svc-index="{{ $i }}" style="display:none;">
           <div class="svc-content">
             <div class="svc-image">
-              <img src="{{ $svc['images'][0] }}" alt="{{ $svc['name'] }}">
+              @if($img)
+                <img src="{{ $img }}" alt="{{ $svc->name }}">
+              @else
+                <img src="https://via.placeholder.com/400x300?text=Service+Image" alt="{{ $svc->name }}">
+              @endif
             </div>
             <div class="svc-text">
-              <h3 class="svc-title">{{ $svc['name'] }}</h3>
-              <p class="svc-desc">{{ $svc['text'] }}</p>
-              <div class="svc-definition">
-                <strong>Definition</strong>
-                <p>{{ $svc['definition'] }}</p>
-              </div>
+              <p class="svc-desc">{{ $svc->text }}</p>
             </div>
           </div>
         </div>
@@ -196,7 +165,7 @@
           @forelse($items as $item)
             <div class="col-sm-6 col-md-3 col-lg-3 gallery-item" data-animate="animate__fadeInUp" style="display:none; --animate-delay: {{ ($loop->index % 3) * 0.15 }}s;">
               <div class="thumbnail">
-                <img src="/image/square?src={{ $item->url }}&size=400" alt="{{ $item->title }}">
+                <img src="{{ $item->url }}" alt="{{ $item->title }}" style="width:100%; height:250px; object-fit:cover;" loading="lazy">
                 <div class="caption"><h4>{{ $item->title }}</h4></div>
               </div>
             </div>
@@ -252,6 +221,19 @@
         <div class="contact-item">
           <p><span><i class="fa fa-envelope-o"></i> Email</span> parish@example.com</p>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="priestModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-body" style="padding:0;">
+        <img id="priestModalImg" src="" alt="Priest" class="img-responsive" style="width:100%;">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
       </div>
     </div>
   </div>

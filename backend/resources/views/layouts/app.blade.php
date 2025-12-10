@@ -27,10 +27,10 @@
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="/#announcements" class="page-scroll">Announcements</a></li>
                 <li><a href="/#about" class="page-scroll">About</a></li>
-                <li><a href="/#priests" class="page-scroll">Information</a></li>
+                <li><a href="/#priests" class="page-scroll">Parish Schedule</a></li>
                 <li><a href="/#services" class="page-scroll">Services</a></li>
                 <li><a href="/#portfolio" class="page-scroll">Gallery</a></li>
-                <li><a href="/#contact" class="page-scroll">Contact</a></li>
+                <li><a href="/#contact" class="page-scroll">Contact Us</a></li>
                 <li><a href="/donate" class="page-scroll"><strong>Donate</strong></a></li>
                 <li><a href="/team" class="page-scroll">Dev Team</a></li>
                 <li class="nav-login">
@@ -44,6 +44,7 @@
                 <li><a href="/admin/announcements">Announcements</a></li>
                 <li><a href="/admin/priest">Priest</a></li>
                 <li><a href="/admin/gallery">Gallery</a></li>
+                <li><a href="/admin/services">Services</a></li>
                 <li><a href="/admin/donations">Donations</a></li>
                 <li><a href="/admin/inquiries">Inquiries</a></li>
                 <li>
@@ -87,6 +88,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -212,17 +215,18 @@ document.addEventListener('DOMContentLoaded', function() {
   var items = Array.prototype.slice.call(document.querySelectorAll('.announcement-item'));
   if (items.length) {
     var current = 0;
+    var ANN_MS = 5000;
     function show(i){
       items.forEach(function(el, idx){ el.style.display = idx === i ? 'block' : 'none'; });
       var counter = document.querySelector('[data-ann-counter]');
       if (counter) counter.textContent = (i+1) + ' of ' + items.length;
     }
     show(0);
-    var timer = setInterval(function(){ current = (current + 1) % items.length; show(current); }, 5000);
+    var timer = setInterval(function(){ current = (current + 1) % items.length; show(current); }, ANN_MS);
     var box = document.querySelector('.announcement-box');
     if (box) {
       box.addEventListener('mouseenter', function(){ clearInterval(timer); });
-      box.addEventListener('mouseleave', function(){ timer = setInterval(function(){ current = (current + 1) % items.length; show(current); }, 5000); });
+      box.addEventListener('mouseleave', function(){ timer = setInterval(function(){ current = (current + 1) % items.length; show(current); }, ANN_MS); });
     }
     var prev = document.querySelector('[data-ann-prev]');
     var next = document.querySelector('[data-ann-next]');
@@ -329,6 +333,18 @@ document.addEventListener('DOMContentLoaded', function() {
     startAuto();
     sc.addEventListener('mouseenter', function(){ stopAuto(); });
     sc.addEventListener('mouseleave', function(){ startAuto(); });
+  }
+
+  var priestPhotos = Array.prototype.slice.call(document.querySelectorAll('.priest-photo'));
+  if (priestPhotos.length) {
+    priestPhotos.forEach(function(img){
+      img.addEventListener('click', function(){
+        var src = img.getAttribute('data-full') || img.getAttribute('src');
+        var mImg = document.getElementById('priestModalImg');
+        if (mImg) mImg.src = src;
+        if (window.jQuery) { jQuery('#priestModal').modal('show'); }
+      });
+    });
   }
 });
 </script>

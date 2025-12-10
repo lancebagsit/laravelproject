@@ -16,6 +16,7 @@
         <a href="/admin/announcements" class="admin-nav-item"><i class="fa fa-bullhorn"></i><span>Announcements</span></a>
         <a href="/admin/priest" class="admin-nav-item"><i class="fa fa-user"></i><span>Priests</span></a>
         <a href="/admin/gallery" class="admin-nav-item"><i class="fa fa-picture-o"></i><span>Gallery</span></a>
+        <a href="/admin/services" class="admin-nav-item"><i class="fa fa-cogs"></i><span>Services</span></a>
         <a href="/admin/donations" class="admin-nav-item"><i class="fa fa-gift"></i><span>Donations</span></a>
         <a href="/admin/inquiries" class="admin-nav-item"><i class="fa fa-envelope"></i><span>Inquiries</span></a>
       </nav>
@@ -25,7 +26,9 @@
       <div class="admin-topbar">
         <div class="admin-title">Home</div>
         <div class="admin-actions">
-          <div class="admin-search"><input type="text" class="form-control" placeholder="Search anything" /></div>
+          <form class="admin-search" action="/admin/search" method="GET" style="display:inline-block; width:300px;">
+            <input type="text" name="q" class="form-control" placeholder="Search anything" />
+          </form>
           <div class="admin-user">{{ session('admin_name') }}</div>
         </div>
       </div>
@@ -86,6 +89,7 @@
           <div class="admin-card-header">
             <h4>Inquiries</h4>
             <a href="/admin/inquiries" class="btn btn-login-secondary">View</a>
+            <a href="/admin/inquiries/archive" class="btn btn-login-secondary">View Archive</a>
           </div>
           <p>Read and reply to contact messages.</p>
         </div>

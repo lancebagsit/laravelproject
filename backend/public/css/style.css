@@ -1988,16 +1988,7 @@ label {
 .schedule-table { width: 100%; border-collapse: collapse; }
 .schedule-table thead th { background-color: #f2f5f8; color: #333; font-weight: 600; padding: 12px; }
 .schedule-table tbody td { padding: 12px; border-top: 1px solid #eee; }
-  content: '';
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: -10px;
-  width: 80px;
-  height: 4px;
-  background-image: linear-gradient(to right, #2e8b57 0%, #ffd700 100%);
-  border-radius: 2px;
-}
+
 
 .gallery-item { padding: 12px; margin-bottom: 12px; }
 .gallery-item .thumbnail {
@@ -2325,3 +2316,8 @@ label {
   .qr-lightbox img { max-width: 94vw; max-height: 80vh; }
   .qr-click-view img { max-height: 300px !important; }
 }
+
+.modal-dialog-centered { position: relative; top: 50%; transform: translateY(-50%); margin: 0 auto; }
+@media (max-height: 500px) { .modal-dialog-centered { top: 5%; transform: none; } }
+.modal { z-index: 20010 !important; }
+.modal-backdrop { z-index: 20000 !important; }

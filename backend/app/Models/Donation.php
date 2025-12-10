@@ -14,5 +14,7 @@ class Donation extends Model
         'donation_amount',
         'status',
         'proof_of_payment_base64',
+        'archived_at',
+        'archived_by',
     ];
 }

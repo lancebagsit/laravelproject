@@ -42,23 +42,26 @@
             @csrf
             <div class="form-group">
               <label for="name">Name</label>
-              <input type="text" class="form-control" id="name" name="name" required>
+              <input type="text" class="form-control" id="name" name="name" required maxlength="100">
             </div>
             <div class="form-group">
               <label for="contact_number">Contact Number</label>
-              <input type="text" class="form-control" id="contact_number" name="contact_number">
+              <input type="text" class="form-control" id="contact_number" name="contact_number" inputmode="numeric" pattern="\d{1,11}" maxlength="11">
             </div>
             <div class="form-group">
               <label for="mode_of_payment">Mode of Payment</label>
-              <input type="text" class="form-control" id="mode_of_payment" name="mode_of_payment">
+              <input type="text" class="form-control" id="mode_of_payment" name="mode_of_payment" maxlength="100">
             </div>
             <div class="form-group">
               <label for="reference_number">Reference Number</label>
-              <input type="text" class="form-control" id="reference_number" name="reference_number">
+              <input type="text" class="form-control" id="reference_number" name="reference_number" inputmode="numeric" pattern="\d{1,20}" maxlength="20">
             </div>
             <div class="form-group">
               <label for="donation_amount">Donation Amount</label>
-              <input type="number" step="0.01" class="form-control" id="donation_amount" name="donation_amount">
+              <div class="input-group">
+                <span class="input-group-addon">₱</span>
+                <input type="number" step="1" min="0" class="form-control" id="donation_amount" name="donation_amount" placeholder="0">
+              </div>
             </div>
           <button type="submit" class="btn btn-custom btn-lg">Submit Donation</button>
           </form>
@@ -80,6 +83,18 @@ document.addEventListener('DOMContentLoaded', function(){
     if (backBtn) backBtn.addEventListener('click', close);
     lb.addEventListener('click', function(e){ if (e.target === lb) close(); });
     document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+  }
+  var cn = document.getElementById('contact_number');
+  if (cn) {
+    cn.addEventListener('input', function(){ this.value = this.value.replace(/\D/g,'').slice(0,11); });
+  }
+  var rn = document.getElementById('reference_number');
+  if (rn) {
+    rn.addEventListener('input', function(){ this.value = this.value.replace(/\D/g,'').slice(0,20); });
+  }
+  var amt = document.getElementById('donation_amount');
+  if (amt) {
+    amt.addEventListener('input', function(){ this.value = this.value.replace(/[^\d]/g,''); });
   }
 });
 </script>
