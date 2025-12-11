@@ -64,7 +64,7 @@ Route::post('/donate', function (Request $request) {
     }
     $validated = $request->validate([
         'name' => 'required|string|min:5|max:100',
-        'contact_number' => ['nullable','regex:/^\d{1,10}$/'],
+        'contact_number' => ['nullable','regex:/^9\d{9}$/'],
         'mode_of_payment' => 'nullable|string|min:5|max:100',
         'reference_number' => ['nullable','regex:/^\d{1,20}$/'],
         'donation_amount' => 'nullable|numeric',

@@ -46,7 +46,7 @@
             </div>
             <div class="form-group">
               <label for="contact_number">Contact Number</label>
-              <input type="text" class="form-control" id="contact_number" name="contact_number" inputmode="numeric" pattern="\d{1,11}" maxlength="11">
+              <input type="text" class="form-control" id="contact_number" name="contact_number" inputmode="numeric" placeholder="+63 9XXXXXXXXX" pattern="^9\d{9}$" maxlength="10">
             </div>
             <div class="form-group">
               <label for="mode_of_payment">Mode of Payment</label>
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   var cn = document.getElementById('contact_number');
   if (cn) {
-    cn.addEventListener('input', function(){ this.value = this.value.replace(/\D/g,'').slice(0,11); });
+    cn.addEventListener('input', function(){ this.value = this.value.replace(/\D/g,'').slice(0,10); });
   }
   var rn = document.getElementById('reference_number');
   if (rn) {
