@@ -52,24 +52,29 @@ class UserAuthController extends Controller
             'expires_at' => now()->addMinutes(5),
         ]);
         $mailError = null;
+        $sentDev = false;
         try {
             Mail::raw('Your verification code: '.$code."\nThis code expires in 5 minutes.", function($m) use ($validated) {
+                $m->from(config('mail.from.address'), config('mail.from.name'));
                 $m->to($validated['email'])->subject('St. Joseph Shrine - Verification Code');
             });
         } catch (\Throwable $e) {
             $mailError = $e->getMessage();
+            logger()->error('Register OTP mail send failed: '.$mailError);
         }
+        $sentDev = app()->environment('local');
         if ($request->ajax()) {
-            if ($mailError && app()->environment('local')) {
-                return response()->json(['status' => 'sent_dev', 'dev_code' => (string)$code, 'message' => 'Email delivery failed, using dev fallback']);
+            if ($sentDev) {
+                return response()->json(['status' => 'sent_dev', 'dev_code' => (string)$code]);
             }
             if ($mailError) {
                 return response()->json(['status' => 'error', 'message' => $mailError], 500);
             }
             return response()->json(['status' => 'sent']);
         }
-        $back = back()->with('status', $mailError ? 'Verification code generated. Email delivery failed.' : 'Verification code sent');
-        if ($mailError && app()->environment('local')) {
+        $msg = $mailError ? 'Verification code generated. Email delivery failed.' : 'Verification code sent';
+        $back = back()->with('status', $msg);
+        if ($sentDev) {
             $back->with('dev_code', (string)$code);
         }
         return $back;
@@ -81,22 +86,13 @@ class UserAuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:100|unique:users,email',
             'password' => 'required|string|min:8|confirmed|regex:/^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/',
-            'code' => 'required|string|min:6|max:6',
         ]);
-        $otp = OtpCode::where('email', $validated['email'])
-            ->where('purpose', 'signup')
-            ->whereNull('consumed_at')
-            ->latest()->first();
-        if (!$otp || $otp->code !== $validated['code'] || now()->greaterThan($otp->expires_at)) {
-            return back()->withErrors(['Invalid or expired verification code']);
-        }
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role_id' => 1,
         ]);
-        $otp->update(['consumed_at' => now()]);
         Auth::login($user);
         $request->session()->regenerate();
         return redirect('/')->with('status', 'Registration complete');
@@ -119,16 +115,24 @@ class UserAuthController extends Controller
             'purpose' => 'reset',
             'expires_at' => now()->addMinutes(5),
         ]);
+        User::where('email', $validated['email'])->update([
+            'otp_code' => (string)$code,
+            'otp_sent_at' => now(),
+        ]);
         $mailError = null;
+        $sentDev = false;
         try {
             Mail::raw('Your password reset code: '.$code."\nThis code expires in 5 minutes.", function($m) use ($validated) {
+                $m->from(config('mail.from.address'), config('mail.from.name'));
                 $m->to($validated['email'])->subject('St. Joseph Shrine - Reset Code');
             });
         } catch (\Throwable $e) {
             $mailError = $e->getMessage();
+            logger()->error('Reset OTP mail send failed: '.$mailError);
         }
+        $sentDev = app()->environment('local');
         if ($request->ajax()) {
-            if ($mailError && app()->environment('local')) {
+            if ($sentDev) {
                 return response()->json(['status' => 'sent_dev', 'dev_code' => (string)$code, 'redirect' => '/reset-password?email='.urlencode($validated['email'])]);
             }
             if ($mailError) {
@@ -138,7 +142,7 @@ class UserAuthController extends Controller
         }
         $redir = redirect('/reset-password?email='.urlencode($validated['email']))
             ->with('status', $mailError ? 'Reset code generated. Email delivery failed.' : 'Reset code sent');
-        if ($mailError && app()->environment('local')) {
+        if ($sentDev) {
             $redir->with('dev_code', (string)$code);
         }
         return $redir;

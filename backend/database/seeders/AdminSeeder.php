@@ -10,13 +10,14 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        if (!Admin::where('email', 'admin@stjoseph.local')->exists()) {
-            Admin::create([
-                'name' => 'System Admin',
-                'email' => 'admin@stjoseph.local',
-                'password' => Hash::make('admin123'),
-            ]);
-        }
+        Admin::updateOrCreate(
+            ['email' => 'admin@stjoseph.local'],
+            ['name' => 'System Admin', 'password' => Hash::make('admin123')]
+        );
+
+        Admin::updateOrCreate(
+            ['email' => 'admin@superduper.local'],
+            ['name' => 'Alt Admin', 'password' => Hash::make('admin123')]
+        );
     }
 }
-
