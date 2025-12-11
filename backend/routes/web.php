@@ -74,6 +74,7 @@ Route::post('/donate', function (Request $request) {
     return redirect('/donate')->with('status', 'Donation submitted');
 });
 
+
 Route::prefix('api')->group(function () {
     Route::apiResource('announcements', AnnouncementController::class);
     Route::apiResource('gallery', GalleryController::class);

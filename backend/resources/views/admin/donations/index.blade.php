@@ -46,14 +46,13 @@
         <div class="panel-body">
           <div class="table-responsive">
             <table class="table table-striped">
-          <thead><tr><th>Name</th><th>Amount</th><th>Reference</th><th>Status</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Name</th><th>Amount</th><th>Reference</th><th>Actions</th></tr></thead>
           <tbody>
           @forelse($items as $d)
             <tr>
               <td>{{ $d->name }}</td>
               <td>{{ $d->donation_amount ?? '-' }}</td>
               <td>{{ $d->reference_number ?? '-' }}</td>
-              <td>{{ $d->status ?? 'pending' }}</td>
               <td>
                 <button class="btn btn-primary" data-toggle="modal" data-target="#donationModal{{ $d->id }}">View</button>
                 @if(empty($d->archived_at))
@@ -78,8 +77,8 @@
         </div>
       </div>
       @foreach($items as $d)
-        <div class="modal fade" id="donationModal{{ $d->id }}" tabindex="-1" role="dialog">
-          <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal fade" id="donationModal{{ $d->id }}" tabindex="-1" role="dialog" aria-hidden="true">
+          <div class="modal-dialog" role="document">
             <div class="modal-content">
               <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title">Donation Details</h4></div>
               <div class="modal-body">
@@ -88,7 +87,6 @@
                 <p><strong>Mode of Payment:</strong> {{ $d->mode_of_payment ?? '-' }}</p>
                 <p><strong>Reference Number:</strong> {{ $d->reference_number ?? '-' }}</p>
                 <p><strong>Amount:</strong> {{ $d->donation_amount ?? '-' }}</p>
-                <p><strong>Status:</strong> {{ $d->status ?? 'pending' }}</p>
                 @if(!empty($d->proof_of_payment_base64))
                   <div><strong>Proof of Payment:</strong><br><img src="data:image/png;base64,{{ $d->proof_of_payment_base64 }}" class="img-responsive" style="max-height:240px;" /></div>
                 @endif

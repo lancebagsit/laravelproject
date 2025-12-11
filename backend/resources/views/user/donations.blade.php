@@ -8,14 +8,13 @@
     <div class="panel-body">
       <div class="table-responsive">
         <table class="table table-striped">
-          <thead><tr><th>Date</th><th>Amount</th><th>Reference</th><th>Status</th></tr></thead>
+          <thead><tr><th>Date</th><th>Amount</th><th>Reference</th></tr></thead>
           <tbody>
             @foreach($items as $d)
               <tr>
                 <td>{{ $d->created_at }}</td>
                 <td>{{ $d->donation_amount ?? '-' }}</td>
                 <td>{{ $d->reference_number ?? '-' }}</td>
-                <td>{{ $d->status ?? 'pending' }}</td>
               </tr>
             @endforeach
           </tbody>

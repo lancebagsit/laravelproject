@@ -46,7 +46,7 @@
             </div>
             <div class="form-group">
               <label for="contact_number">Contact Number</label>
-              <input type="text" class="form-control" id="contact_number" name="contact_number" inputmode="numeric" placeholder="+63 9XXXXXXXXX" pattern="^9\d{9}$" maxlength="10">
+              <input type="text" class="form-control" id="contact_number" name="contact_number" inputmode="numeric" placeholder="Example (9606207919)" pattern="^9\d{9}$" maxlength="10">
             </div>
             <div class="form-group">
               <label for="mode_of_payment">Mode of Payment</label>
